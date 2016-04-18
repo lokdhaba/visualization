@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="ie ie6" lang="en"> <![endif]-->
+<!--[if IE 7 ]><html class="ie ie7" lang="en"> <![endif]-->
+<!--[if IE 8 ]><html class="ie ie8" lang="en"> <![endif]-->
+<!--[if (gte IE 9)|!(IE)]><!-->
+<html lang="en">
+<!--<![endif]-->
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<script src="assets/plugins/d3.v3.min.js"></script>
+		<script src="assets/plugins/queue.v1.min.js"></script>
+		<script src="assets/plugins/topojson.v1.min.js"></script>
+		<!-- CORE JQUERY  -->
+		<script src="assets/plugins/jquery-1.10.2.js"></script>
+		<script src="assets/js/tcpd.js"></script>
+		
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Sample Data Visualization</title>
+    <!--REQUIRED STYLE SHEETS-->
+    <!-- BOOTSTRAP CORE STYLE CSS -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLE CSS -->
+    <link href="assets/css/font-awesome.min.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE CSS -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+	</head>
+	<body>
+		<nav class="navbar navbar-default navbar-fixed-top" >
+		<h4><center>Election Analysis</center></h4>
+
+		<p class="error_msg">Please fill all the fields</p>
+		<div id="election">
+		<form id="selectionbox" >
+		   <span class="selectionbox">
+			<div>
+				<b>Election type:</b>&nbsp;&nbsp;<br>
+				<input type="radio" name="election_type" value="GE" checked='yes'>&nbsp;GENERAL ELECTIONS(Lok Sabha)&nbsp;&nbsp;&nbsp;&nbsp;<br>
+				<input type="radio" name="election_type" value="AE">&nbsp;ASSEMBLY ELECTIONS(Vidhan Sabha)
+				</div>
+				<div class="state">
+					<b>State:</b>&nbsp;<br>
+					<select id="state">
+						<option value=''>Select</option>
+						<!--<option value='Bihar'>Bihar</option>-->
+					</select>
+				</div>					
+				&nbsp;&nbsp;
+				<div>
+					<b>Year:</b>&nbsp;<br>
+					<select id="year">
+						<option value=''>Select</option>
+					</select>
+				</div>	
+
+				<div><b>Visualization type</b>&nbsp;<br>
+					<select id="viz_type">
+							<option value=''>Select</option>
+							<option value='charts'>Charts/Graphs</option>
+							<option value='maps'>Maps</option>
+					</select>
+				</div>		
+					
+				<div class='results_div'>
+					<b>Results for&nbsp;</b><br>
+					<select class="ae_select" id="ae_graph_chart_select" name="viz_options">
+							<option value=''>Select</option>
+							<option value='voter_turnout'>Voter turnout</option>
+							<option value='parties_contesting'>Number of parties contesting and represented</option>
+							<option value='seatshare'>Seat Share of parties</option>
+							<option value='voteshare'>Party wise voteshare</option>
+							<option value='contested_deposit_lost'>Contested and Deposit Saved</option>
+							<option value='women'>Women candidates and winners</option>
+					</select>
+					<select class="ae_select" id="ae_map_select" name="viz_options">
+							<option value=''>Select</option>
+							<option value='gender#main'>Constituencies with women winners</option>
+							<option class="parties" value='vote_share#individual'>Individual party vote share across constituencies</option>
+							<option class="parties" value='seat_share#individual'>Individual party positions across constituencies</option>
+							<option value='candidates#main'>Number of candidates contesting across constituencies</option>
+							<option value='Turnout#main'>Turnout across constituencies</option>
+							<option value='Electors#main'>Electors distribution across constituencies</option>
+							<option value='nota#main'>NOTA across constituencies</option>
+							<option value='margin_victory#main'>Margin of victory across constituencies</option>
+							<option value='community#main'>General, SC and ST seats (only winners)</option>
+							<option value='religion#main'>Muslim candidates across constituencies</option>
+							<option value='winners#main'>Winners across constituencies</option>
+					</select>
+					<select class="ge_select" id="ge_graph_chart_select" name="viz_options">
+							<option value=''>Select</option>
+							<option value='voter_turnout'>Voter turnout</option>
+							<option value='parties_contesting'>Number of parties contesting and represented</option>
+							<option value='seatshare'>Seat Share of parties</option>
+							<option value='voteshare'>Party wise voteshare</option>
+							<option value='contested_deposit_lost'>Contested and Deposit Saved</option>
+							<option value='women'>Women candidates and winners</option>
+					</select>
+					<select class="ge_select" id="ge_map_select" name="viz_options">
+							<option value=''>Select</option>
+							<option value='winners#main'>Regional Distribution of Winners</option>
+							<option class="parties" value='voteshare#individual'>Individual party vote share across constituencies</option>
+							<option value='turnout#main'>Turnout across constituencies</option>
+					</select>
+				</div>
+				&nbsp;&nbsp;
+				<div class="parties_td">
+					<b>Parties&nbsp;</b><br>
+					<select id="parties">
+						<option value=''>Select</option>
+						<option value='BJP'>BJP</option>
+						<option value='INC'>INC</option>
+					</select>
+				</div>
+				<div class='button_center'><br><input type="button" id="show_viz" class="disabledButton1" value="Go" /></div>				
+			</span>
+		</form>
+	</div>
+
+</nav>
+		About Section
+		<section class="for-full-back " id="about">
+			<div class="container">
+
+				<div class="row">
+					<div id="side_panel" class="col-sm-2">
+						<input type="hidden" value="" name="filter_path" />
+						<div id="filtervalued">
+							<input type="checkbox" name="filtervalue" style="display:none" />
+						</div>
+					</div>
+					<div id="mainGraphDiv" class="col-md-10">
+				   
+          					  
+    <script>
+	//var myselect = document.getElementById("year"), year = new Date().getFullYear();
+	//var gen = function(max){do{myselect.add(new Option(year,year--),null);max--}while(max>0);}(45);
+	
+		$(".state").hide();
+		$(".parties_td").hide();
+		$(".results_div").hide();
+		$(".ge_select").hide();
+		$(".ae_select").hide();
+		$("#default_select").show(); 
+		var party ='';
+		var viz_option ='';
+		var viz = '';
+		var state = '';
+		var year = '';
+		
+		$.getJSON('api/ge/year', function(data) {
+			console.log("inside year");
+			$('#year').find('option').remove().end().append('<option value="">Select</option>');
+			var s1 = $("#year");
+			$.each(data, function(i, item) {
+				$('<option />', {value: item, text:item}).appendTo(s1);
+			});						
+		});
+
+		
+		$('#state').on('change', function() {
+			$.getJSON('api/ae/year/'+this.value, function(data) {
+				$('#year').find('option').remove().end().append('<option value="">Select</option>');
+				var s1 = $("#year");
+				$.each(data, function(i, item) {
+					$('<option />', {value: item, text:item.replace("_"," ")}).appendTo(s1);
+				});
+					
+			});
+		});
+		
+		
+		
+		$('input[type=radio][name=election_type]').change(function() {
+			$('#filtervalued').empty();
+			$('#state').find('option').remove().end().append('<option value="">Select</option>');
+			$('#year').find('option').remove().end().append('<option value="">Select</option>');
+			$('#parties').find('option').remove().end().append('<option value="">Select</option>');
+			$("select#state").removeAttr('selected').find('option:first').attr('selected', 'selected');
+			$("select#year").removeAttr('selected').find('option:first').attr('selected', 'selected');
+			$("select#viz_type").removeAttr('selected').find('option:first').attr('selected', 'selected');
+			$("select[name=viz_options]").removeAttr('selected').find('option:first').attr('selected', 'selected');
+			$('.results_div').hide();
+			$(".parties_td").hide();
+			party ='';
+			viz_option ='';
+			viz = '';
+			state = '';
+			year = '';
+			
+			
+			
+			
+			//$('select[name=viz_options]').hide();
+			if(this.value == 'GE') {
+				$.getJSON('/api/ge/year', function(data) {
+					$('#year').find('option').remove().end().append('<option value="">Select</option>');
+					var s1 = $("#year");
+					$.each(data, function(i, item) {
+						$('<option />', {value: item, text:item}).appendTo(s1);
+					});						
+				});
+				$(".state").hide();
+			} else {
+				$.getJSON('api/ae/states', function(data) {
+					var s1 = $("#state");
+					$.each(data, function(i, item) {
+						$('<option />', {value: item, text:item}).appendTo(s1);
+					});
+						
+				});
+				$(".state").show();
+			}
+		});
+		
+			
+		$('#viz_type').change(function() {
+			var elect_type = $("input[name='election_type']:checked").val();
+			viz_option = '';
+			viz = this.value;
+			$('.results_div').show();
+			if(viz == 'charts' && elect_type == 'AE') {
+				$("#ae_graph_chart_select").show();
+				$("#ge_graph_chart_select").hide();
+				$("#ae_map_select").hide();
+				$("#ge_map_select").hide();
+				//$("#default_select").hide();				
+			} else if(viz == 'maps' && elect_type == 'AE') {
+				$("#ae_graph_chart_select").hide();
+				$("#ge_graph_chart_select").hide();
+				$("#ae_map_select").show();
+				$("#ge_map_select").hide();
+				//$("#default_select").hide();
+			} else if(viz == 'maps' && elect_type == 'GE') {
+				$("#ae_graph_chart_select").hide();
+				$("#ge_graph_chart_select").hide();
+				$("#ae_map_select").hide();
+				$("#ge_map_select").show();
+				//$("#default_select").hide();
+			} else if(viz == 'charts' && elect_type == 'GE') {
+				$("#ae_graph_chart_select").hide();
+				$("#ge_graph_chart_select").show();
+				$("#ae_map_select").hide();
+				$("#ge_map_select").hide();
+				//$("#default_select").hide();
+			} else {
+				$("#ae_graph_chart_select").hide();
+				$("#ge_graph_chart_select").hide();
+				$("#ae_map_select").hide();
+				$("#ge_map_select").hide();
+				//$("#default_select").show();
+				$(".results_div").hide();
+				$(".parties_td").hide();
+			}
+		});
+		
+		$('select[name=viz_options]').change(function() {
+			party = '';
+			if($(this).find(":selected").attr('class') == 'parties') {
+				var api_path='';
+				$(".parties_td").show();
+				if($("input[name='election_type']:checked").val() == 'AE') {
+					api_path = 'api/ae/partieslist/'+$("#state").val()+'/'+$("#year").val();
+				} else {
+					api_path = 'api/ge/partieslist/'+$("#year").val();
+				}
+				
+				$('#parties').find('option').remove().end().append('<option value="">Select</option>');
+				$.getJSON(api_path, function(data) {
+				var s1 = $("#parties");
+					$.each(data, function(i, item) {
+						$('<option />', {value: item, text:item}).appendTo(s1);
+					});	
+				});
+			} else {
+				$('#parties').find('option').remove().end().append('<option value="">Select</option>');
+				$(".parties_td").hide();
+				party = ' ';
+			}
+			viz_option = $(this).find(":selected").val();			
+		});
+		
+		$('#parties').change(function() {
+			party = $('#parties').find(":selected").val();
+		});
+
+		
+		
+		
+		$("input#show_viz").on('click',function () {
+			
+			createmaps('','');
+			
+			
+		});
+	
+	function createmaps(filtername, filtervalue) {
+		$('#selectionbox > input:hidden').attr("disabled",true);
+
+		$( "#mainGraphDiv" ).empty();
+		var elect_type = $("input[name='election_type']:checked").val();
+		if(elect_type == 'AE') {
+			state = $('#state').val();
+		} else {
+			state = 'All';
+		}
+		
+		var year = $('#year').val();
+		var viz_type = $('#viz_type').val();
+		var year1 = '2000';
+		if(state === '' || year1 === '' || viz_option === '' || party === '' || viz ==='' ) {
+			$(".error_msg").show();
+			return false;
+		} else {
+			$(".error_msg").hide();
+		}
+		
+		if (viz_type == 'maps' && elect_type == 'GE') {
+			showGeMapVizualisation(elect_type, state, year, viz_option, party, filtername, filtervalue );
+		} else if (viz_type == 'charts' && elect_type == 'GE') {
+			showGeChartsVizualisation(elect_type, state, '2014', viz_option, party );
+		} else if (viz_type == 'maps' && elect_type == 'AE') {
+			showAeMapVizualisation(elect_type, state, year, viz_option, party, filtername, filtervalue );
+		} else if (viz_type == 'charts' && elect_type == 'AE') {
+			showAeChartsVizualisation(elect_type, state, '2015', viz_option, party );
+		}
+	}
+	
+	$(document).ready(function(){
+	  $('body').on('click', 'input[type=checkbox][name=filtervalue]', function(){
+	  
+		var checkedValues = $('input[name="filtervalue"]:checked').map(function() {
+			return this.value;
+		}).get();
+		var filtername = $('input[name="filter_path"]').val();
+		console.log(filtername+','+checkedValues);
+		createmaps(filtername, checkedValues);
+	  })
+		 
+	})
+	</script>
+	
+					</div>
+				</div>
+   
+				<div class="row text-center space-pad">   
+					<div class="col-md-3 ">
+					</div>       
+				</div>  
+			</div>
+		</section>  
+
+    <!-- BOOTSTRAP CORE SCRIPT   -->
+    <script src="assets/plugins/bootstrap.js"></script>
+
+	</body>
+</html>

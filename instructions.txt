@@ -1,0 +1,6 @@
+install node.js
+
+node -v
+
+npm install -g topojson
+topojson -o newBihar_AC_PostDel_topo.json .\Bihar_AC_PostDel.json
