@@ -167,7 +167,7 @@
 				$('#year').find('option').remove().end().append('<option value="">Select</option>');
 				var s1 = $("#year");
 				$.each(data, function(i, item) {
-					$('<option />', {value: item, text:item.replace("_"," ")}).appendTo(s1);
+					$('<option />', {value: item, text:item}).appendTo(s1);
 				});
 					
 			});
@@ -209,7 +209,7 @@
 				$.getJSON('api/ae/states', function(data) {
 					var s1 = $("#state");
 					$.each(data, function(i, item) {
-						$('<option />', {value: item, text:item}).appendTo(s1);
+						$('<option />', {value: item, text:item.replace("_"," ")}).appendTo(s1);
 					});
 						
 				});
@@ -337,7 +337,7 @@
 			return this.value;
 		}).get();
 		var filtername = $('input[name="filter_path"]').val();
-		console.log(filtername+','+checkedValues);
+		//console.log(filtername+','+checkedValues);
 		createmaps(filtername, checkedValues);
 	  })
 		 

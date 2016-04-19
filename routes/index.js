@@ -112,7 +112,6 @@ router.get('/api/elections/ge_voter_turnouts', function (req, res) {
 
 router.get('/api/party/colors', function (req, res) {
     color_codes.find({}, { "_id": 0 }, function (err, elections) {
-		res.writeHead(200, { 'Content-Type': 'application/json' });
         res.json(elections);
     })
 });

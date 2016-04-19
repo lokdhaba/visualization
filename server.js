@@ -17,17 +17,7 @@ var config = require('./config/config');
 var app = express();
 
 //configurations==============================================
-mongoose.connect(process.env.CUSTOMCONNSTR_MONGOLAB_URI,function(err){
- if(err) console.log(err);
-});
-
-mongoose.connection.on('open', function (ref) {
-  console.log('Connected to Mongo server...');
-});
-mongoose.connection.on('error', function (err) {
-  console.log('Could not connect to Mongo server...');
-  console.log(err);
-});
+mongoose.connect(config.database);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -79,5 +69,5 @@ app.use(function(err, req, res, next) {
 var port = process.env.PORT || 1337;
 module.exports = app;
 
-app.listen(port);
-console.log('listening on port 8090');
+app.listen(1337);
+console.log('listening on port 1337');
