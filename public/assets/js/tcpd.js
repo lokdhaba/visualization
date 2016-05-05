@@ -1,26 +1,25 @@
 "use strict";
 
 //common variables
-var margin = {top: 45, right: 65, bottom: 40, left: 55};
+var margin = {top: 55, right: 30, bottom: 55, left: 0};
 
 var projection = d3.geo.mercator().scale(1);
 var path = d3.geo.path().projection(projection);
-var brand = 'Source: Adapted from ECI Data <br/>Trivedi Center for Political Data, Ashoka University';
+var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Center for Political Data, Ashoka University';
 var root_path = 'assets/elections/';
-		
-var party_colors, party_colors_ar = [];
+var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","Turnout","Margin_percent","Runner","Runner_party","Runner_sex"];
+
 var color_codes = d3.map();
+var empty_area_color = "gray";
+var test_arr = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
+
 $.getJSON("api/party/colors", function(json){
-   // party_colors = JSON.parse(json);
 
 	json.forEach(function(d) { 
-		//party_colors_ar[d.party] = d.color;
 		color_codes.set(d.party, d.color); 
 	});
-	
-//console.log(party_colors_ar);
-});
 
+});
 
 function doesFileExist(urlToFile) {
     var xhr = new XMLHttpRequest();
@@ -45,13 +44,13 @@ function getRandomColors(count) {
 		usercolors.push("#"+colorcode);
 	}
 	return usercolors;
-	
 }
 
 function prepare_headings(gSeqNo,mheading,sheading) {
 
    var divid = 'graph_area'+gSeqNo; 
-   $('#mainGraphDiv').append('<div style="text-align:center" id="'+divid+'"><h4><b>'+mheading+'</b></h4><h4>'+sheading+'</h4><p class="brand">'+brand+'</p> </div>'); 
+   //$('#mainGraphDiv').append('<div style="text-align:center" id="'+divid+'"><h4><b>'+mheading+'</b></h4><h4>'+sheading+'</h4><p class="brand">'+brand+'</p> </div>'); 
+    $('#mainGraphDiv').append('<div style="text-align:center" id="'+divid+'" class="graph_area"></div>'); 
    return divid;
 }
  
@@ -60,8 +59,17 @@ function create_svg(divid, width, height) {
 	var svg = d3.select("#"+divid).append("div").append("svg")
 				.attr("width",  width  + margin.left + margin.right)
 				.attr("height", height + margin.top  + margin.bottom)
-				.append("g")
-				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				.style("font-family", "'Ruluko', sans-serif")
+				//.append("g")
+				
+				/*.append("text")
+				.attr("x", (width / 2))             
+				.attr("y", 0 - (margin.top / 2))
+				.attr("text-anchor", "middle")  
+				.style("font-size", "16px") 
+				.style("text-decoration", "underline")  
+				.text("Value vs Date Graph")
+				.append("g");*/
 	return svg;
 }
 
@@ -75,24 +83,113 @@ function getMapCenterScale(boundry_points,width, height) {
 	return [center, scale];
 }
 
+
+
+//console.log(getLegendRanges([20,30,40,50,60],'%'));
+
+function getLegendRanges(range_values, unit) {
+
+	range_values.reverse();
+	range_values.push(0);
+	range_values.reverse();
+	//var range_values_zeroed = range_values;
+	var range =[];
+	for(var i=0;i<range_values.length;i++){
+		if(i==0){
+			range[i] = '<'+range_values[i+1]+unit;
+		} else if(i == range_values.length-1){
+			range[i] = '>'+range_values[i]+unit;
+		} else {
+			range[i] = range_values[i]+unit+'-'+range_values[i+1]+unit;
+		}
+		
+		
+	}
+	return [range_values,range];
+}
+
+
+function createlegendBorder(svg) {
+	var legendPadding= 5;
+	var legend_box = svg.selectAll(".legend-box").data([true]);
+
+	legend_box.enter().append("rect")
+	.style("fill","none")
+	.style("stroke","black")
+    .style("stroke-width","1px")
+    .style("opacity","1")
+	.classed("legend-box",true)
+	var	legend_grp = svg.selectAll(".legend_grp").data([true]) ;
+	
+	var legend_grp_size = legend_grp[0][0].getBBox();
+	if(legend_grp_size.height > 0) {
+		legend_box.attr("x",(legend_grp_size.x-legendPadding))
+			.attr("y",(legend_grp_size.y-legendPadding+71))
+			.attr("height",(legend_grp_size.height+2*legendPadding))
+			.attr("width",(legend_grp_size.width+2*legendPadding))
+	}
+	
+}
+
+function resizeSvg(svg, drawAreaClass) {
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBoundingClientRect();
+	
+	var	ldgrp_dim = svg.selectAll(".legend-box").data([true]) ;
+	var ldgrp_area = ldgrp_dim[0][0].getBoundingClientRect();
+
+		
+	var map_dim = svg.selectAll(drawAreaClass).data([true]) ;
+	var map_area = map_dim[0][0].getBoundingClientRect();
+
+	var right_padding = 15;
+	if(drawAreaClass == '.counties') {
+		right_padding = 50;
+	}	
+		
+	var	svg_dim =d3.select("svg").data([true]) ;
+	var svg_area = svg_dim[0][0].getBoundingClientRect();
+		
+	var diff_width = (map_area.width + ldgrp_area.width) - svg_area.width
+	var diff_height = (map_area.height + title_area.height) - svg_area.height
+	//var diff_height = (map_area.y + map_area.height) - (Math.abs(svg_area.y) + svg_area.height)
+				//console.log(diff_width +','+diff_height);
+	if(diff_width > 0) {
+		svg.attr('width',svg_area.width+ Math.abs(diff_width)+right_padding)
+	}
+	if(diff_height > 0) {
+		svg.attr('height',svg_area.height+ Math.abs(diff_height)+5)
+	}
+	
+}
+
+function writeDownloadLink(){
+	var html = d3.select("svg")
+		.attr("title", "svg_title")
+		.attr("version", 1.1)
+		.attr("xmlns", "http://www.w3.org/2000/svg")
+		.node().parentNode.innerHTML;
+	
+	d3.select(this)
+		.attr("href-lang", "image/svg+xml")
+		.attr("href", "data:image/svg+xml;base64,\n" + btoa(html))
+		.on("mousedown", function(){
+			d3.select(this)
+					.html("Download As SVG");
+			})
+		.on("mouseout", function(){
+			d3.select(this)
+				.html("Download As SVG");
+		});
+};
+
+
 function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) {
 	var usercolors = getRandomColors(10);
 	var filepath ='';
 	var data_column = viz_option.split('#');
 	
 	filepath = 'api/elections/'
-	
-		/*if(party !== ' ') {
-		filepath = filepath+data_column+'_'+elect_type+'_'+state+'_'+year+'_'+party+'.csv';
-	} else {
-		filepath = filepath+data_column+'_'+elect_type+'_'+state+'_'+year+'.csv';
-	}
-
-	if(!doesFileExist(filepath)) {
-		noDataAvailable();
-		return false;
-	}
-	*/
 	switch(data_column[0]) {
 		
 		case 'voter_turnout':
@@ -125,6 +222,7 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', state+' '+year,'Year', 'Year', 'Percentages',usercolors,0,0);
 			break;
 	}
+	$('#filtervalued').empty();
 	
 	
 }
@@ -134,26 +232,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party, filt
 	var data_column = viz_option.split('#');
 	
 	var root_path = 'assets/elections/'+elect_type+'/'+state+'/';
-	/*var filepath ='';
-	
-	if(data_column[1] == 'main') {
-		filepath = root_path+'All'+'/'
-	} else if(data_column[1] == 'individual') {
-		filepath = root_path+'parties/'
-	}
 
-	if(party !== ' ') {
-		filepath = filepath+elect_type+'_'+state+'_'+year+'_'+party+'.csv';
-	} else {
-		filepath = filepath+elect_type+'_'+state+'_'+year+'_main.csv';
-	}
-	
-	/*if(!doesFileExist(filepath)) {
-		noDataAvailable();
-		return false;
-	}
-	*/
-	
 	var api_path = 'api/ae/elections/'+state+'/'+year;
 	var api_path2 = api_path+'/'+party;
 	var topoJsonpath = root_path+state+'.json';
@@ -171,46 +250,46 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party, filt
 		case 'gender':
 			filter_column_name = 'Sex1';
 			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Constituencies with women winners ',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
-					break;
+			break;
 					
 
 		case 'vote_share':
 			column_name = 'Vote_percent';
-			createMapsVoteShare(600, 300,topoJsonpath,api_path2, 6, 'Individual party vote share across constituencies',state+' '+year,'AC_No',column_name,usercolors[0], 'ac');
+			createMapsVoteShare(600, 300,topoJsonpath,api_path2, 6, 'Individual party vote share across constituencies',state+' '+year,'AC_No',column_name,'#d62728', 'ac');
 			break;
 			
-		case 'seat_share':
+		case 'position':
 			column_name = 'Position';
-			createMapsCategory(600, 300,topoJsonpath,api_path2, 6, 'Individual party positions across constituencies ',state+' '+year,'AC_No',column_name,usercolors, 'ac');
+			createMapsPositions(600, 300,topoJsonpath,api_path2, 6, 'Individual party positions across constituencies ',state+' '+year,'AC_No',column_name,'#393b79', 'ac');
 			break;
 		
 		case 'candidates':
 			column_name = 'N_cand';
-			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Number of candidates contesting across constituencies',state+' '+year,'AC_No',column_name,usercolors, 'ac');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Number of candidates contesting across constituencies',state+' '+year,'AC_No',column_name,'#843c39', 'ac',[5,15],'');
 					break;
 					
 		case 'Turnout':
 			column_name = 'Turnout';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Turnout across constituencies',state+' '+year,'AC_No',column_name,usercolors[0], 'ac');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Turnout across constituencies',state+' '+year,'AC_No',column_name,'#393b79', 'ac',[40,50,60,70],'%');
 					break;
 
 		case 'Electors':
 			column_name = 'Electors';
-			createMapsElectors(600, 300,topoJsonpath,api_path, 6, 'Electors distribution across constituencies',state+' '+year,'AC_No',column_name,usercolors[0], 'ac');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Electors distribution across constituencies',state+' '+year,'AC_No',column_name,'#31a354', 'ac',[100000,150000,200000], '');
 					break;
 					
 		case 'nota':
 			column_name = 'NOTA_percent';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'NOTA across constituencies',state+' '+year,'AC_No',column_name,usercolors[0], 'ac');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'NOTA across constituencies',state+' '+year,'AC_No',column_name,'#756bb1', 'ac',[1,3,5],'%');
 					break;
 					
 		case 'margin_victory':
 			column_name = 'Margin_percent';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',column_name,usercolors[0], 'ac');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',column_name,'#756bb1', 'ac',[5,10,20],'%');
 					break;
 					
 		case 'community':
-			filter_column_name = 'AC_type';
+			filter_column_name = 'AC_Type';
 			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'General, SC and ST seats (only winners)',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
 					break;
 					
@@ -221,7 +300,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party, filt
 					
 		case 'winners':
 			filter_column_name = 'Party1';
-			var partiesPath = 'api/ae/parties/'+state+'/'+year+'/15';
+			var partiesPath = 'api/ae/parties/'+state+'/'+year+'/5';
 			createMapsWinners(600, 300,topoJsonpath,api_path, partiesPath, 6, 'Winners across constituencies',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
 				break;
 	}
@@ -246,10 +325,9 @@ function createSideFilter(elect_type, state, year, filter_column_name, filter_he
 			$.each(data, function (i, item) {
 				var selected = '';
 				console.log(filtervalue);
-				//var filt = filtervalue.split(',');
+
 				if($.inArray( item, filtervalue ) > 0) {
 					console.log(item+'<>'+ filtervalue);
-					//selected = 'checked';
 				}
 				$('#filtervalued').append('<input type="checkbox" name="filtervalue" value="'+item+'" '+selected+' />'+item+'<br>');
 			});
@@ -266,27 +344,9 @@ function createSideFilter(elect_type, state, year, filter_column_name, filter_he
 
 function showGeChartsVizualisation(elect_type, state, year, viz_option,party ) {
 	var usercolors = getRandomColors(10);
-	//var root_path = 'assets/elections/'+elect_type+'/'+year+'/';
 	var filepath = '';
 	var data_column = viz_option.split('#');
 	
-	//filepath = root_path+'graphs'+'/';
-	/*
-	if(party !== ' ') {
-		filepath = filepath+data_column+'_'+elect_type+'_'+state+'_'+year+'_'+party+'.csv';
-	} else {
-		filepath = filepath+data_column+'_'+elect_type+'_'+state+'_'+year+'.csv';
-	}
-	
-	var topoJsonpath = root_path+state+'.json';
-	
-	if(!doesFileExist(filepath)) {
-		noDataAvailable();
-		return false;
-	}
-		*/
-		
-		
 	filepath = 'api/elections/';	
 	switch(data_column[0]) {
 		
@@ -316,7 +376,7 @@ function showGeChartsVizualisation(elect_type, state, year, viz_option,party ) {
 			break;
 		
 		case 'women':
-			filepath = filepath+'ge_women';
+			filepath = filepath+'ge_womens';
 			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', 'General Election '+year,'Year', 'Year', 'Percentages',usercolors,0,0);
 			break;
 	}
@@ -328,26 +388,6 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party,filte
 	var root_path = 'assets/elections/'+elect_type+'/';
 	var data_column = viz_option.split('#');
 	var topoJsonpath = '',topoMapObj ='';
-	/*var filepath ='';
-	
-	if(data_column[1] == 'main') {
-		filepath = root_path+'All'+'/'
-	} else if(data_column[1] == 'individual') {
-		filepath = root_path+'parties/'
-	}
-	
-	
-	if(party !== ' ') {
-		filepath = filepath+data_column[0]+'_'+elect_type+'_'+year+'_'+party+'.csv';
-	} else {
-		filepath = filepath+data_column[0]+'_'+elect_type+'_'+year+'.csv';
-	}
-
-	if(!doesFileExist(filepath)) {
-		noDataAvailable();
-		return false;
-	}
-	*/
 	
 	var api_path = 'api/ge/elections/'+year;
 	var api_path2 = api_path+'/'+party;
@@ -362,19 +402,16 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party,filte
 	
 	if(filtername != '' && filtervalue !='') {
 		var filterpath = filtername.split('#');
-		
-		//api/ae/elections/:state/:year/community/:searchvalue
 		api_path = api_path+'/'+filterpath[2]+'/'+filtervalue;
 		csfiltervalue = filtervalue.join('#');
 	}
 	
-	console.log(api_path);
-
 	switch(data_column[0]) {
 		
 		case 'winners':
+			filter_column_name = 'Party1';
 			var partiesPath = 'api/ge/parties/'+year+'/15';
-			createMapsWinners(600, 400,topoJsonpath,api_path+'/position/1',partiesPath, 6,  'Regional Distribution of Winners ','General Election '+year,'PC_No','Party1',usercolors, topoMapObj);
+			createMapsWinners(600, 400,topoJsonpath,api_path+'/position/1',partiesPath, 6,  'Regional Distribution of Winners ','General Election '+year,'PC_No',filter_column_name,usercolors, topoMapObj);
 			break;
 		
 		case 'voteshare':
@@ -382,14 +419,17 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party,filte
 			break;
 
 		case 'turnout':
-			createMapsTurnout(600, 400,topoJsonpath,api_path, 6, 'Regional Distribution of Turnout','General Election '+year,'PC_No','Turnout', '#336600', topoMapObj);
+			createMapsTurnout(600, 400,topoJsonpath,api_path, 6, 'Regional Distribution of Turnout','General Election '+year,'PC_No','Turnout', '#336600', topoMapObj,[40,50,60,70],'%');
+			//createMapsTurnout(600, 400,topoJsonpath,api_path, 6, 'Turnout across constituencies',state+' '+year,'AC_No',filter_column_name,'#393b79', 'ac',[40,50,60,70],'%');				
 			break;				
+	}
+	if(filter_column_name != '') {
+		createSideFilter('ge', state, year, filter_column_name, data_column[0], filtervalue);
+	} else {
+		$('#filtervalued').empty();
 	}
 }
 
-function noDataAvailable() {
-	$('#mainGraphDiv').append('<div id="1"><h4><b>No Data Available for the selected year</b></h4><h4>Please check the filter options</h4></div>');
-}
 
 function createLineGraph(width, height,path, gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor) {
 	
@@ -537,18 +577,23 @@ function createLineGraph(width, height,path, gSeqNo, mheading, sheading, xAxisHe
 		  });
 		  $(this).popover('show')
 		}
+		 d3.select("#download")
+			.on("mouseover", writeDownloadLink);
 	});
 }
 
 
 function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor,yscale) {
 	
-	var margin = {top: 45, right: 65, bottom: 40, left: 55},
-	width  = 800 - margin.left - margin.right,
-	height = 380  - margin.top  - margin.bottom;
-	
+	var margin = {top: 15, right: 15, bottom: 35, left:55};
 	var divid = prepare_headings(gSeqNo,mheading,sheading);
-
+	var svg = create_svg(divid, width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
+	
+	width  = width - margin.left - margin.right,
+	height = height  - margin.top  - margin.bottom;
+	
 	var x = d3.scale.ordinal()                    
 			.rangeRoundBands([0, width], 1);
 
@@ -574,8 +619,9 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 	var color = d3.scale.ordinal()
 				.range(usercolor);
 
-
-	var svg = create_svg(divid, width, height);
+	
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
 
 	// function for the x grid lines
 	function make_x_axis() {
@@ -616,24 +662,35 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		  }))+10
 		]);
 
+
+		var chart_element = svg.append("g")
+							.attr("class","chart_area")
+							.attr("transform", "translate(" + margin.left + "," +(title_area.height ) + ")")
 		// Draw the x Grid lines
-		svg.append("g")
+		chart_element.append("g")
 			.attr("class", "grid")
 			.attr("transform", "translate(0," + height + ")")
+			.style("stroke","lightgrey")
+			.style("stroke-opacity","0.7")
+			.style("shape-rendering","crispEdges")
 			.call(make_x_axis()
 				.tickSize(-height, 0, 0)
 				.tickFormat("")
 			)
 
 		// Draw the y Grid lines
-		svg.append("g")            
+		chart_element.append("g")            
 			.attr("class", "grid")
+			.style("stroke","lightgrey")
+			.style("stroke-opacity","0.7")
+			.style("shape-rendering","crispEdges")
 			.call(make_y_axis()
 				.tickSize(-width, 0, 0)
 				.tickFormat("")
 			)
-		svg.append("g")
+		chart_element.append("g")
 			.attr("class", "x axis")
+			.style("font-size", "12px")
 			.attr("transform", "translate(0," + height + ")")
 			.call(xAxis)
 			.append("text")
@@ -643,8 +700,9 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.style("text-anchor", "start")
 			.text(col1Head);;
 
-		svg.append("g")
+		chart_element.append("g")
 			.attr("class", "y axis")
+			.style("font-size", "12px")
 			.call(yAxis)
 			.append("text")
 			.attr("transform", "rotate(-90)")
@@ -652,9 +710,10 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.attr("y", -50)
 			.attr("dy", ".71em")
 			.style("text-anchor", "end")
+			.style("font-size", "12px")
 			.text(col2Head);
 			
-		var series = svg.selectAll(".series")
+		var series = chart_element.selectAll(".series")
 						.data(seriesData)
 						.enter().append("g")
 						.attr("class", "series");
@@ -681,14 +740,41 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.on("click", function (d) { showPopover.call(this, d); })
 			.on("mouseout",  function (d) { removePopovers(); })
 				
+		chart_element.selectAll('.axis path')
+					.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
+					
+					
+		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
+		var chart_area = chart_dim[0][0].getBBox();
+	
 		// to display the legends on the side
-		var legend = svg.selectAll(".legend")
+				var ls_w = 20, ls_h = 15;
+							
+		var legend = svg.append("g")
+						.attr("class","legend_grp")
+						.attr("transform", "translate(0," +(title_area.height ) + ")")
+						
+						.selectAll(".legend")
 						.data(varNames.slice().reverse())
 						.enter().append("g")
-						.attr("class", "legend")
-						.attr("transform", function(d, i) {return "translate(" + i * 110 + ",-25)"; })
-						.attr("width",function (d) { return d; });
-		  
+						.attr("class", "legend");
+						//.attr("transform", function(d, i) {return "translate(" + i * 110 + ",-25)"; })
+		  legend.append("rect")
+					.attr("x", chart_area.width+10)
+					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill",color)
+					.style("opacity", 0.8);
+					 
+				legend.append("text")
+					.attr("x", chart_area.width+40)
+					.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.text(function (d) { return d; });
+				createlegendBorder(svg)
+				resizeSvg(svg, '.chart_area');
+				/*
 		legend.append("rect")
 			.attr("x", 0)
 			.attr("width", 50)
@@ -705,7 +791,8 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.style("font-size", "14px") 
 			.style("font-size", "14px") 
 			.style("text-wrap", "normal")
-			.text(function (d) { return d; });
+			.text(function (d) { return d; });*/
+
 			  
 		function removePopovers () {
 		  $('.popover').each(function() {
@@ -726,17 +813,22 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		  });
 		  $(this).popover('show')
 		}
+		d3.select("#download")
+			.on("mouseover", writeDownloadLink);
 	});
 }
   
 
 function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor) {
 	
-	var margin = {top: 45, right: 65, bottom: 40, left: 55},
-	width  = 800 - margin.left - margin.right,
-	height = 380  - margin.top  - margin.bottom;
-	
+	var margin = {top: 15, right: 15, bottom: 35, left:55};
 	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid, width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
+	width  = width - margin.left - margin.right,
+	height = height  - margin.top  - margin.bottom;
+	
 	var x0 = d3.scale.ordinal()
 			.rangeRoundBands([0, width], .1);
 
@@ -758,7 +850,8 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 				.tickFormat(d3.format(".2s"));
 
 
-	var svg = create_svg(divid, width, height);			
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();		
 			
 	d3.json(path, function(error, data) {
 		if (error) throw error;
@@ -773,8 +866,12 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 		x1.domain(ageNames).rangeRoundBands([0, x0.rangeBand()]);
 		y.domain([0, (d3.max(data, function(d) { return d3.max(d.ages, function(d) { return d.value; }); }))+10]);
 
-		svg.append("g")
+		var chart_element = svg.append("g")
+							.attr("class","chart_area")
+							.attr("transform", "translate(" + margin.left + "," +(title_area.height ) + ")")
+		chart_element.append("g")
 			.attr("class", "x axis")
+			.style("font-size", "12px")
 			.attr("transform", "translate(0," + height + ")")
 			.call(xAxis)
 			.append("text")
@@ -784,8 +881,9 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			.style("text-anchor", "start")
 			.text(col1Head);
 
-		svg.append("g")
+		chart_element.append("g")
 			.attr("class", "y axis")
+			.style("font-size", "12px")
 			.call(yAxis)
 			.append("text")
 			.attr("transform", "rotate(-90)")
@@ -795,7 +893,9 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			.style("text-anchor", "end")
 			.text(col2Head);
 
-		var state = svg.selectAll(".state")
+		chart_element.selectAll('.axis path')
+				.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
+		var state = chart_element.selectAll(".state")
 					.data(data)
 					.enter().append("g")
 					.attr("class", "state")
@@ -813,29 +913,34 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			.on("click", function (d) { showPopover.call(this, d); })
 			.on("mouseout",  function (d) { removePopovers(); });
 
-		var legend = svg.selectAll(".legend")
+		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
+		var chart_area = chart_dim[0][0].getBBox();
+		var ls_w = 20, ls_h = 15;
+		console.log(chart_area);
+		var legend = svg.append("g")
+						.attr("class","legend_grp")
+						.attr("transform", "translate(0," +(title_area.height ) + ")")
+						.selectAll(".legend")
 						.data(ageNames.slice().reverse())
 						.enter().append("g")
-						.attr("class", "legend")
-						.attr("transform", function(d, i) {return "translate(" + i * 200 + ",-25)"; })
-						.attr("text-align", "middle");
-			  
-		legend.append("rect")
-			.attr("x", 0)
-			.attr("width", 50)
-			.attr("height", 10)
-			.style("fill", color)
-			.style("stroke", "grey");
+						.attr("class", "legend");
 
-		legend.append("text")
-			.attr("x", -10)
-			.attr("y", -5)
-			.attr("dx", ".9em")
-			.style("text-anchor", "start")
-			.style("text-wrap", "normal")
-			.text(function (d) { return d; });
-				
-		  
+		  legend.append("rect")
+					.attr("x", chart_area.width+10)
+					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill",color)
+					.style("opacity", 0.8);
+					 
+				legend.append("text")
+					.attr("x", chart_area.width+40)
+					.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.text(function (d) { return d; });
+				createlegendBorder(svg)
+				resizeSvg(svg, '.chart_area');			
+						
 		function removePopovers () {
           $('.popover').each(function() {
             $(this).remove();
@@ -854,6 +959,8 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 				});
 			$(this).popover('show')
         }
+		d3.select("#download")
+		.on("mouseover", writeDownloadLink);
 	});
 }
 	  
@@ -977,20 +1084,30 @@ function createBarGraph(width, height, path,gSeqNo, mheading, sheading, xAxisHea
 			});
 			$(this).popover('show')
 		}
+		d3.select("#download")
+			.on("mouseover", writeDownloadLink);
+		
+		
+		
 	});
 }
 
-function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
 
-	var margin = {top: 15, right: 15, bottom: 15, left: 15},
+function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values, legend_unit) {
+
+	var margin = {top: 15, right: 15, bottom: 15, left: 15};
+	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid,width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
 	width  = width - margin.left - margin.right,
 	height = height  - margin.top  - margin.bottom;
-	//var ext_color_domain = [];
-	var color_domain = [20,30,40,50,60];
-	var ext_color_domain = [0,20,30,40,50,60];
-	var legend_labels = ["<20%", "20-30%", "30-40%", "40-50%", "50-60%", ">60%"];
-
 	
+	var color_domain = legend_values;
+	var legend_ranges = getLegendRanges(color_domain,legend_unit)
+	var ext_color_domain = legend_ranges[0];
+	var legend_labels = legend_ranges[1];
+
 	var rateById = {};
 	var c = d3.rgb(usercolor);
 	var minimumColor = c.brighter().toString();
@@ -998,55 +1115,22 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 	var color = d3.scale.linear().domain(color_domain).range([minimumColor, usercolor]);
 
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
 	
-	var svg = create_svg(divid,width, height);
-		
-	/*d3.csv(csvPath, function(data) {
-		var range = d3.extent(data, function(d) { return +d[col2Head]; });
-		//console.log(range[0]);
-		for(var i=0; i<color_domain.length; i++) {
-			ext_color_domain[i] = (color_domain[i]*range[1]/100).toFixed(3);
-			
-		}
-
-		color = d3.scale.linear().domain(ext_color_domain).range([minimumColor, usercolor]);
-
-		ext_color_domain.unshift(0);
-		var legend_labels = ["<"+ext_color_domain[1], ext_color_domain[1]+"-"+ext_color_domain[2], ext_color_domain[2]+"-"+ext_color_domain[3], ext_color_domain[3]+"-"+ext_color_domain[4], ">"+ext_color_domain[4]];
-		var legend = svg.selectAll(".legend")
-					.data(ext_color_domain)
-					.enter().append("g")
-					.attr("class", "legend");
-		 
-		var ls_w = 20, ls_h = 20;
-			 
-		legend.append("rect")
-			.attr("x", width-100)
-			.attr("y", function(d, i){ return height - (i*ls_h) - 2*ls_h;})
-			.attr("width", ls_w)
-			.attr("height", ls_h)
-			.style("fill", function(d, i) { return color(d); })
-			.style("opacity", 0.8);
-			 
-		legend.append("text")
-			.attr("x", width-70)
-			.attr("y", function(d, i){ return height - (i*ls_h) - ls_h - 5;})
-			.text(function(d, i){ return legend_labels[i]; });
-			
-	});*/
-	
-	var div = d3.select("body").append("div")
-				.attr("class", "tooltip")
-				.style("opacity", 0);
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
 			
 	$.getJSON(csvPath, function(data) {
        
-		data.forEach(function(d) { rateById[d[col1Head]] = d; 
-			if (legend_labels.indexOf(d[col2Head]) == -1) {
+		data.forEach(function(d) { 
+		//console.log(d);
+		//if((d[col2Head] > .40) && (d[col2Head] < .50)) {
+			rateById[d[col1Head]] = d; 
+		//}
+		
+			/*if (legend_labels.indexOf(d[col2Head]) == -1) {
 				legend_labels.push(d[col2Head]);
 			}
-			legend_labels = legend_labels.sort().reverse();
+			legend_labels = legend_labels.sort().reverse();*/
 
 		});
 		
@@ -1055,16 +1139,20 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 
 			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox, width, height);
 			
+			var new_height = height- title_area.y;
 			projection
-			.translate([width / 2, height / 2])
+			.translate([width / 2, new_height / 2])
 			.center(center_scale[0])
 			.scale(center_scale[1]);
-			
-			svg.append("g")
+
+			svg.append("g")				
+				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
 				.enter().append("path")
+				.style("stroke","#ffffff")
+				.style("stroke-width","1px")		
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
 						if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
@@ -1073,193 +1161,134 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 							return color(rateById[d.properties[mappingColumn]][col2Head]);
 						}
 						
+					} else {
+						return empty_area_color;
 					}
 				})
 				.style("opacity", 0.9)
-				.attr("d", path)
+				.attr("d", path)			
 				.on("mouseover", function (d) { showPopover.call(this,d); })
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })
+				
+				var	graph_dim = svg.selectAll(".counties").data([true]) ;
+				var graph_area = graph_dim[0][0].getBBox();
+				
+				var ls_w = 20, ls_h = 15;
+				 
+				var legend = svg.append("g")
+					.attr("transform", "translate(0," +(title_area.height ) + ")")
+					.attr("class","legend_grp")
+					.selectAll(".legend")
+					.data(ext_color_domain)
+					.enter().append("g")
+					.attr("class", "legend");
+
+				legend.append("rect")
+					.attr("x", graph_area.x + graph_area.width+30)
+					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill", function(d){ return color(d); })
+					.style("opacity", 0.8);
+					 
+				legend.append("text")
+					.attr("x", graph_area.x + graph_area.width + 60)
+					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.text(function(d, i){ return legend_labels[i]; });
+				createlegendBorder(svg)
+				
+				function removePopovers () {
+				  $('.popover').each(function() {
+					$(this).remove();
+				  }); 
+				}
+
+				function showPopover (d) {
+				  $(this).popover({
+					title: d.name,
+					placement: 'auto top',
+					container: 'body',
+					trigger: 'manual',
+					html : true,
+					content: function() { 
+					var html = '';
+							for(var key in rateById[d.properties[mappingColumn]]){
+								if(key !== '' && consDetailsArr.indexOf(key) > -1) 
+								{
+									var key1 = key.replace('_', ' ')
+									html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
+								}					
+							}
+					  return html;
+					}
+				  });
+				  $(this).popover('show')
+				}
+				resizeSvg(svg, '.counties');
+				d3.select("#download")
+				.on("mouseover", writeDownloadLink);
+			
 		});
 	});
-
-	/*queue()
-		.defer(d3.json, topoJsonpath)
-		.await(ready);
-		
-		*/
-
-	
-	var legend1 = d3.select("#"+divid)
-						.append('div')
-						.append('ul')
-						.attr('class','legend_list')
-						.attr('height', height);
-
-		var keys = legend1.selectAll('li.key')
-						.data(ext_color_domain)
-						.enter().append('li')
-						.style('border-left-color', function(d, i) { return color(d); })
-						.text(function(d, i){  return legend_labels[i]; });
-	
-	function removePopovers () {
-	  $('.popover').each(function() {
-		$(this).remove();
-	  }); 
-	}
-
-	function showPopover (d) {
-	  $(this).popover({
-		title: d.name,
-		placement: 'auto top',
-		container: 'body',
-		trigger: 'manual',
-		html : true,
-		content: function() { 
-		var html = '';
-				for(var key in rateById[d.properties[mappingColumn]]){
-					if(key !== '') 
-					{
-						var key1 = key.replace('_', ' ')
-						html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-					}					
-				}
-		  return html;
-		}
-	  });
-	  $(this).popover('show')
-	}
 }
  
  
- 
-function createMapsElectors(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
-
-	var margin = {top: 15, right: 15, bottom: 15, left: 15},
-	width  = width - margin.left - margin.right,
-	height = height  - margin.top  - margin.bottom;
-	var ext_color_domain = [];
-	var color_domain = [40,50,60,70];
-	var color = d3.map();
+function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	
-	var rateById = {};
-	var c = d3.rgb(usercolor);
-	var minimumColor = c.brighter().toString();
+	var title = svg.append("g")
+	.attr("class","title_grp");
+	
+	title.append("text")
+	  .attr("class", "title")
+	  .attr("x", width/2)
+	  .attr("y", 20)
+	  .attr("text-anchor", "middle")
+	  .style("font-weight","Bold")
+	  .style("font-size","18px")
+	  .text(mheading);
+	  
+	 title.append("text")
+	  .attr("class", "title")
+	  .attr("x", width/2)
+	  .attr("y", 40 )
+	  .attr("text-anchor", "middle")
+	  .style("font-size","18px")
+	  .text(sheading);
+	  
+	  title.append("text")
+	  .attr("class", "title")
+	  .attr("x", width/2)
+	  .attr("y", 60)
+	  .attr("text-anchor", "middle")
+	  .style("font-size","10px")
+	  .text(brand1);
+	  
+	  title.append("text")
+	  .attr("class", "title")
+	  .attr("x", width/2)
+	  .attr("y", 70)
+	  .attr("text-anchor", "middle")
+	  .style("font-size","10px")
+	  .text(brand2);
+	  
+	  title.append("text")
+	  .attr("class", "title")
+	  .attr("x", width/2)
+	  .attr("y", 110)
+	  .attr("text-anchor", "middle")
+	  .style("font-size","10px")
+	  .text('    ');
 
-	//var legend_labels = ["<10%", "10-20%", "20-30%", "30-40%", "40-50%", "50-60%", "60-70%","70-80%","80-90%", ">90%"];
-	//var color = d3.scale.linear().domain(color_domain).range([minimumColor, usercolor]);
+}
 
-	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
+function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
+	var margin = {top: 15, right: 15, bottom: 15, left: 15};
 	var divid = prepare_headings(gSeqNo,mheading,sheading);
 	
 	var svg = create_svg(divid,width, height);
-		
-	d3.json(csvPath, function(data) {
-		var range = d3.extent(data, function(d) { return +d[col2Head]; });
-		//console.log(range[0]);
-		for(var i=0; i<color_domain.length; i++) {
-			ext_color_domain[i] = (color_domain[i]*range[1]/100).toFixed(3);
-			
-		}
-
-		color = d3.scale.linear().domain(ext_color_domain).range([minimumColor, usercolor]);
-
-		ext_color_domain.unshift(0);
-		var legend_labels = ["<"+ext_color_domain[1], ext_color_domain[1]+"-"+ext_color_domain[2], ext_color_domain[2]+"-"+ext_color_domain[3], ext_color_domain[3]+"-"+ext_color_domain[4], ">"+ext_color_domain[4]];
-		var legend1 = d3.select("#"+divid)
-						.append('div')
-						.append('ul')
-						.attr('class','legend_list')
-						.attr('height', height);
-
-		var keys = legend1.selectAll('li.key')
-						.data(ext_color_domain)
-						.enter().append('li')
-						.style('border-left-color', function(d, i) { return color(d); })
-						.text(function(d, i){  return legend_labels[i]; });
-			
-	});
-	
-	var div = d3.select("body").append("div")
-				.attr("class", "tooltip")
-				.style("opacity", 0);
-			
-	$.getJSON(csvPath, function(data) {
-       
-		data.forEach(function(d) { rateById[d[col1Head]] = d;
-		});
-		
-		d3.json(topoJsonpath, function(error, mdata) {
-			if (error) throw error;
-
-			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox, width, height);
-			
-			projection
-			.translate([width / 2, height / 2])
-			.center(center_scale[0])
-			.scale(center_scale[1]);
-			
-			svg.append("g")
-				.attr("class", "counties")
-				.selectAll("path")
-				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-				.enter().append("path")
-				.style ( "fill" , function (d) {
-					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
-							return color(rateById[d.properties[mappingColumn]][col2Head]*100);
-						} else {
-							return color(rateById[d.properties[mappingColumn]][col2Head]);
-						}
-						
-					}
-				})
-				.style("opacity", 0.9)
-				.attr("d", path)
-				.on("mouseover", function (d) { showPopover.call(this,d); })
-				.on("click", function (d) { showPopover.call(this, d); })
-				.on("mouseout",  function (d) { removePopovers(); })
-		});
-	});
-
-	/*queue()
-		.defer(d3.json, topoJsonpath)
-		.await(ready);
-		
-	*/
-	
-		
-	function removePopovers () {
-	  $('.popover').each(function() {
-		$(this).remove();
-	  }); 
-	}
-
-	function showPopover (d) {
-	  $(this).popover({
-		title: d.name,
-		placement: 'auto top',
-		container: 'body',
-		trigger: 'manual',
-		html : true,
-		content: function() { 
-		var html = '';
-				for(var key in rateById[d.properties[mappingColumn]]){
-					if(key !== '') 
-					{
-						var key1 = key.replace('_', ' ')
-						html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-					}					
-				}
-		  return html;
-		}
-	  });
-	  $(this).popover('show')
-	}
-}
- 
-function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
-	var margin = {top: 15, right: 15, bottom: 15, left: 15},
+	createMapTitle(svg, width, height, margin, mheading, sheading);
 	width  = width - margin.left - margin.right,
 	height = height  - margin.top  - margin.bottom;
 	
@@ -1268,49 +1297,45 @@ function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 	var legend_labels = ["<20%", "20-30%", "30-40%", "40-50%", "50-60%", ">60%"];
 
 	
-	//d3.csv(csvPath, function(data){
-		//var max = d3.max(data, function(d) { return +d.field_goal_attempts;} );
-	//}
-	//var max = d3.max(data, function(d) { return d.column1; });
-	
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
 	
-	var svg = create_svg(divid,width, height);
+	
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
 
 	var rateById = {};
 	var c = d3.rgb(usercolor);
 	var minimumColor = c.brighter().toString();
 	
 	var color = d3.scale.linear().domain(color_domain).range([minimumColor, usercolor]);
-	var div = d3.select("body").append("div")
-				.attr("class", "tooltip")
-				.style("opacity", 0);
 				
 	$.getJSON(csvPath, function(data) {
        
 		data.forEach(function(d) { rateById[d[col1Head]] = d; 
-			if (legend_labels.indexOf(d[col2Head]) == -1) {
+			/*if (legend_labels.indexOf(d[col2Head]) == -1) {
 				legend_labels.push(d[col2Head]);
 			}
-			legend_labels = legend_labels.sort().reverse();
+			legend_labels = legend_labels.sort().reverse();*/
 		});
 		
 		d3.json(topoJsonpath, function(error, mdata) {
 	//if (error) throw error;
 
 			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox,width, height);
-
+			var new_height = height- title_area.y;
 			projection
-			.translate([width / 2, height / 2])
+			.translate([width / 2, new_height / 2])
 			.center(center_scale[0])
 			.scale(center_scale[1]);
-			
-			svg.append("g")
+
+			svg.append("g")				
+				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
 				.enter().append("path")
+				.style("stroke","#ffffff")
+				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
 						if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
@@ -1319,6 +1344,8 @@ function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 							return color(rateById[d.properties[mappingColumn]][col2Head]);
 						}
 						
+					} else {
+						return empty_area_color;
 					}
 				})
 				.style("opacity", 0.9)
@@ -1327,74 +1354,92 @@ function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })
 
+				var	graph_dim = svg.selectAll(".counties").data([true]) ;
+				var graph_area = graph_dim[0][0].getBBox();
+				
+				var ls_w = 20, ls_h = 15;
+				 
+				var legend = svg.append("g")
+					.attr("transform", "translate(0," +(title_area.height ) + ")")
+					.attr("class","legend_grp")
+					.selectAll(".legend")
+					.data(ext_color_domain)
+					.enter().append("g")
+					.attr("class", "legend");
+
+				legend.append("rect")
+					.attr("x", graph_area.x + graph_area.width+30)
+					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill", function(d){ return color(d); })
+					.style("opacity", 0.8);
+					 
+				legend.append("text")
+					.attr("x", graph_area.x + graph_area.width + 60)
+					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.text(function(d, i){ return legend_labels[i]; });
+				createlegendBorder(svg)
+				
+				resizeSvg(svg, '.counties');	
+				d3.select("#download")
+				.on("mouseover", writeDownloadLink);
+
+				function removePopovers () {
+				  $('.popover').each(function() {
+					$(this).remove();
+				  }); 
+				}
+				function showPopover (d) {
+				  $(this).popover({
+					title: d.name,
+					placement: 'auto top',
+					container: 'body',
+					trigger: 'manual',
+					html : true,
+					content: function() { 
+					var html = '';
+							for(var key in rateById[d.properties[mappingColumn]]){
+								if(key !== '' && consDetailsArr.indexOf(key) > -1) 
+								{
+									var key1 = key.replace('_', ' ')
+									html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
+								}					
+							}
+					  return html;
+					}
+				  });
+				  $(this).popover('show')
+				}
+		
 		});
 	});
-
-	/*queue()
-		.defer(d3.json, topoJsonpath)
-		.await(ready);*/
-	
-	
 		
-		
-		var legend1 = d3.select("#"+divid)
-						.append('div')
-						.append('ul')
-						.attr('class','legend_list')
-						.attr('height', height);
-
-		var keys = legend1.selectAll('li.key')
-						.data(ext_color_domain)
-						.enter().append('li')
-						.style('border-left-color', function(d, i) { return color(d); })
-						.text(function(d, i){  return legend_labels[i]; });
-						
-	function removePopovers () {
-	  $('.popover').each(function() {
-		$(this).remove();
-	  }); 
-	}
-	function showPopover (d) {
-	  $(this).popover({
-		title: d.name,
-		placement: 'auto top',
-		container: 'body',
-		trigger: 'manual',
-		html : true,
-		content: function() { 
-		var html = '';
-				for(var key in rateById[d.properties[mappingColumn]]){
-					if(key !== '') 
-					{
-						var key1 = key.replace('_', ' ')
-						html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-					}					
-				}
-		  return html;
-		}
-	  });
-	  $(this).popover('show')
-	}
 }
 
 function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
 	
-	var margin = {top: 15, right: 15, bottom: 15, left: 15},
+	var margin = {top: 15, right: 15, bottom: 15, left: 15};
+	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid,width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
 	width  = width - margin.left - margin.right,
 	height = height  - margin.top  - margin.bottom;
 	
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
 	
-	var svg = create_svg(divid,width, height);
+	
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
+
 	var rateById = {};
 	var color = d3.map();
 
 	var legend_labels=[], other_parties=[];
-	var div = d3.select("body").append("div")
-				.attr("class", "tooltip")
-				.style("opacity", 0);
-				
+					
 	$.getJSON(partiesPath, function(data) {
        
 		data.forEach(function(d) {
@@ -1406,80 +1451,98 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 	$.getJSON(csvPath, function(data) {
        
 		data.forEach(function(d) { rateById[d[col1Head]] = d; 
-			if (legend_labels.indexOf(d[col2Head]) == -1 && legend_labels.length < 16) {
-				if(legend_labels.length == 15) {
+			if (legend_labels.indexOf(d[col2Head]) == -1 && legend_labels.length < 6) {
+				if(legend_labels.length == 5) {
 					legend_labels.push('Others');
 				} else {
 					legend_labels.push(d[col2Head]);
 				}
 				
-			} else if(legend_labels.length > 15) {
+			} else if(other_parties.indexOf(d[col2Head]) == -1 && legend_labels.length > 5) {
 				other_parties.push(d[col2Head]);
 			}
 			//legend_labels = legend_labels.sort().reverse();*/
 		});
 		
-		var color = d3.scale.ordinal().domain(legend_labels).range(usercolor);
+		
+		
+		var color = d3.scale.category10().domain(legend_labels);
 
-	//function ready(error, mdata) {
-	//	if (error) throw error;
-	
 		d3.json(topoJsonpath, function(error, mdata) {
 			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox,width, height);
-
+			var new_height = height- title_area.y;
 			projection
-			.translate([width / 2, height / 2])
+			.translate([width / 2, new_height / 2])
 			.center(center_scale[0])
 			.scale(center_scale[1]);
 
-			svg.append("g")
+			svg.append("g")				
+				.attr("transform", "translate(" + margin.left + "," +(margin.top + title_area.y + title_area.height + 10) + ")")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
 				.enter().append("path")
+				.style("stroke","#ffffff")
+				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						//return color(rateById[d.properties[mappingColumn]][col2Head]);
-						if(color_codes.get(rateById[d.properties[mappingColumn]][col2Head])) {
-							return color_codes.get(rateById[d.properties[mappingColumn]][col2Head]);
+						if(legend_labels.indexOf(rateById[d.properties[mappingColumn]][col2Head]) == -1) {
+							return color('Others');
 						} else {
-							if(other_parties.indexOf(rateById[d.properties[mappingColumn]][col2Head]) == -1) {
-								return color(rateById[d.properties[mappingColumn]][col2Head]);
+							if(color_codes.get(rateById[d.properties[mappingColumn]][col2Head])) {
+								return color_codes.get(rateById[d.properties[mappingColumn]][col2Head]);
 							} else {
-								return color('Others');
+								return color(rateById[d.properties[mappingColumn]][col2Head]);
 							}
-							
 						}
+					} else {
+						return empty_area_color;
 					}
 				})
 				.style("opacity", 0.9)
 				.attr("d", path)
 				.on("mouseover", function (d) { showPopover.call(this, d); })
 				.on("click", function (d) { showPopover.call(this, d); })
-				.on("mouseout",  function (d) { removePopovers(); })
+				.on("mouseout",  function (d) { removePopovers(); })		
+			
+			var	graph_dim = svg.selectAll(".counties").data([true]) ;
+			var graph_area = graph_dim[0][0].getBBox();
+			
+			var ls_w = 20, ls_h = 15;
+			 
+			var legend = svg.append("g")
+				.attr("transform", "translate(0," +(title_area.height ) + ")")
+				.attr("class","legend_grp")
+				.selectAll(".legend")
+				.data(legend_labels)
+				.enter().append("g")
+				.attr("class", "legend");
 
-			var legend1 = d3.select("#"+divid)
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
-
-			var keys = legend1.selectAll('li.key')
-							.data(legend_labels)
-							.enter().append('li')
-							.style('border-left-color', function(d, i) { 
-								if(color_codes.get(d)) {
-									return color_codes.get(d);
-								} else {
-									if(other_parties.indexOf(d) == -1) {
-										return color(d);
-									} else {
-										return color('Others');
-									}
-								}
-							})
-							.text(function(d, i){  return legend_labels[i]; });
-							
+			legend.append("rect")
+				.attr("x", graph_area.x + graph_area.width+30)
+				.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i);})
+				.attr("width", ls_w)
+				.attr("height", ls_h)
+				.style("fill", function(d, i) { 
+						if(legend_labels.indexOf(d) == -1) {
+							return color('Others');
+						} else {
+							if(color_codes.get(d)) {
+								return color_codes.get(d);
+							} else {
+								return color(d);
+							}
+						}
+				})
+				.style("opacity", 0.8);
+				 
+			legend.append("text")
+				.attr("x", graph_area.x + graph_area.width + 60)
+				.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+				.style("font-size","12px")
+				.text(function(d, i){ return legend_labels[i]; });
+			createlegendBorder(svg);
+			
 			function removePopovers () {
 			  $('.popover').each(function() {
 				$(this).remove();
@@ -1496,7 +1559,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				content: function() { 
 				var html = '';
 						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '') 
+							if(key !== '' && consDetailsArr.indexOf(key) > -1)
 							{
 								var key1 = key.replace('_', ' ')
 								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
@@ -1507,49 +1570,36 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 			  });
 			  $(this).popover('show')
 			}
-			
-			function showPartyColor() {
-				
-			}
+			resizeSvg(svg, '.counties');
+			d3.select("#download")
+			.on("mouseover", writeDownloadLink);
 		});
+		
 	});
-
-	/*queue()
-		.defer(d3.json, topoJsonpath)
-		.defer(d3.json, csvPath, function(d) {
-       console.log(d);
-			rateById[d[col1Head]] = d; 
-				if (legend_labels.indexOf(d[col2Head]) == -1) {
-					legend_labels.push(d[col2Head]);
-				}
-				legend_labels = legend_labels.sort().reverse();
-			
-		})
-		.await(ready);*/
-    
 	
 }
 
 function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
 	
-	var margin = {top: 15, right: 15, bottom: 15, left: 15},
+	var margin = {top: 15, right: 15, bottom: 15, left: 15};
+	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid,width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
 	width  = width - margin.left - margin.right,
 	height = height  - margin.top  - margin.bottom;
 	
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
 	
-	var svg = create_svg(divid,width, height);
+	
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
+	
 	var rateById = {};
 	var color = d3.map();
 
 	var legend_labels=[];
-	var div = d3.select("body").append("div")
-				.attr("class", "tooltip")
-				.style("opacity", 0);
-				
-	
-			
+
 
 	$.getJSON(csvPath, function(data) {
        
@@ -1559,8 +1609,8 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 			}
 			legend_labels = legend_labels.sort().reverse();
 		});
-		
-		var color = d3.scale.ordinal().domain(legend_labels).range(usercolor);
+
+		var color = d3.scale.category10().domain(legend_labels);
 
 	//function ready(error, mdata) {
 	//	if (error) throw error;
@@ -1568,19 +1618,30 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 		d3.json(topoJsonpath, function(error, mdata) {
 			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox,width, height);
 
+			var new_height = height- title_area.y;
 			projection
-			.translate([width / 2, height / 2])
+			.translate([width / 2, new_height / 2])
 			.center(center_scale[0])
 			.scale(center_scale[1]);
 
-			svg.append("g")
+			svg.append("g")				
+				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
 				.enter().append("path")
+				.style("stroke","#ffffff")
+				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						return color(rateById[d.properties[mappingColumn]][col2Head]);
+						if(test_arr[0][rateById[d.properties[mappingColumn]][col2Head]]) {
+							return test_arr[0][rateById[d.properties[mappingColumn]][col2Head]]
+						} else {
+							return color(rateById[d.properties[mappingColumn]][col2Head]);
+						}
+						
+					} else {
+						return empty_area_color;
 					}
 				})
 				.style("opacity", 0.9)
@@ -1589,18 +1650,41 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })
 
-			var legend1 = d3.select("#"+divid)
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
+				
+			var	graph_dim = svg.selectAll(".counties").data([true]) ;
+			var graph_area = graph_dim[0][0].getBBox();
+			
+			var ls_w = 20, ls_h = 15;
+			 
+			var legend = svg.append("g")
+				.attr("transform", "translate(0," +(title_area.height ) + ")")
+				.attr("class","legend_grp")
+				.selectAll(".legend")
+				.data(legend_labels)
+				.enter().append("g")
+				.attr("class", "legend");
 
-			var keys = legend1.selectAll('li.key')
-							.data(legend_labels)
-							.enter().append('li')
-							.style('border-left-color', function(d, i) { return color(d); })
-							.text(function(d, i){  return legend_labels[i]; });
-							
+			legend.append("rect")
+				.attr("x", graph_area.x + graph_area.width+30)
+				.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+				.attr("width", ls_w)
+				.attr("height", ls_h)
+				.style("fill", function(d, i) { 
+						if(test_arr[0][d]) {
+							return test_arr[0][d];
+						} else {
+							return color(d);
+						}
+				})
+				.style("opacity", 0.8);
+				 
+			legend.append("text")
+				.attr("x", graph_area.x + graph_area.width + 60)
+				.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+				.style("font-size","12px")
+				.text(function(d, i){ return legend_labels[i]; });
+			createlegendBorder(svg)
+			
 			function removePopovers () {
 			  $('.popover').each(function() {
 				$(this).remove();
@@ -1617,7 +1701,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				content: function() { 
 				var html = '';
 						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '') 
+							if(key !== '' && consDetailsArr.indexOf(key) > -1) 
 							{
 								var key1 = key.replace('_', ' ')
 								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
@@ -1628,21 +1712,132 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 			  });
 			  $(this).popover('show')
 			}
+			resizeSvg(svg, '.counties');
+			d3.select("#download")
+			.on("mouseover", writeDownloadLink);
+		});	
+	});
+}
+
+function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values) {
+	
+	var margin = {top: 15, right: 15, bottom: 15, left: 15};
+	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid,width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
+	width  = width - margin.left - margin.right,
+	height = height  - margin.top  - margin.bottom;
+	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
+	
+	var color_domain = [1,2,3];
+	var ext_color_domain = [0,1,2,3];
+	var legend_labels = ["1", "2", "3", ">3"];
+	
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	var title_area = title_dim[0][0].getBBox();
+
+	var rateById = {};
+	var color = d3.map();
+
+	$.getJSON(csvPath, function(data) {
+       
+		data.forEach(function(d) { 
+			rateById[d[col1Head]] = d; 
+		});
+		var c = d3.rgb(usercolor);
+		var minimumColor = c.brighter().toString();
+		
+		var color = d3.scale.linear().domain(legend_labels).range([minimumColor, usercolor]);
+
+		d3.json(topoJsonpath, function(error, mdata) {
+			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox,width, height);
+			var new_height = height- title_area.y;
+			projection
+			.translate([width / 2, new_height / 2])
+			.center(center_scale[0])
+			.scale(center_scale[1]);
+
+			svg.append("g")				
+				.attr("transform", "translate(" + margin.left + "," +(title_area.y + title_area.height + 10) + ")")
+				.attr("class", "counties")
+				.selectAll("path")
+				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
+				.enter().append("path")
+				.style("stroke","#ffffff")
+				.style("stroke-width","1px")
+				.style ( "fill" , function (d) {
+					if(rateById[d.properties[mappingColumn]] !== undefined) {	
+						return color(rateById[d.properties[mappingColumn]][col2Head]);
+					} else {
+						return empty_area_color;
+					}
+				})
+				.style("opacity", 0.9)
+				.attr("d", path)
+				.on("mouseover", function (d) { showPopover.call(this, d); })
+				.on("click", function (d) { showPopover.call(this, d); })
+				.on("mouseout",  function (d) { removePopovers(); })
+
+			var	graph_dim = svg.selectAll(".counties").data([true]) ;
+			var graph_area = graph_dim[0][0].getBBox();
+			
+			var ls_w = 20, ls_h = 15;
+			 
+			var legend = svg.append("g")
+				.attr("transform", "translate(0," +(title_area.height ) + ")")
+				.attr("class","legend_grp")
+				.selectAll(".legend")
+				.data(legend_labels)
+				.enter().append("g")
+				.attr("class", "legend");
+
+			legend.append("rect")
+				.attr("x", graph_area.x + graph_area.width+30)
+				.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+				.attr("width", ls_w)
+				.attr("height", ls_h)
+				.style("fill", function(d, i) { return color(d); })
+				.style("opacity", 0.8);
+				 
+			legend.append("text")
+				.attr("x", graph_area.x + graph_area.width + 60)
+				.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+				.style("font-size","12px")
+				.text(function(d, i){ return legend_labels[i]; });
+			createlegendBorder(svg)
+		
+			function removePopovers () {
+			  $('.popover').each(function() {
+				$(this).remove();
+			  }); 
+			}
+
+			function showPopover (d) {
+			  $(this).popover({
+				title: d.name,
+				placement: 'auto top',
+				container: 'body',
+				trigger: 'manual',
+				html : true,
+				content: function() { 
+				var html = '';
+						for(var key in rateById[d.properties[mappingColumn]]){
+							if(key !== '' && consDetailsArr.indexOf(key) > -1) 
+							{
+								var key1 = key.replace('_', ' ')
+								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
+							}					
+						}
+				  return html;
+				}
+			  });
+			  $(this).popover('show')
+			}
+			resizeSvg(svg, '.counties');
+			d3.select("#download")
+			.on("mouseover", writeDownloadLink);
 		});
 	});
 
-	/*queue()
-		.defer(d3.json, topoJsonpath)
-		.defer(d3.json, csvPath, function(d) {
-       console.log(d);
-			rateById[d[col1Head]] = d; 
-				if (legend_labels.indexOf(d[col2Head]) == -1) {
-					legend_labels.push(d[col2Head]);
-				}
-				legend_labels = legend_labels.sort().reverse();
-			
-		})
-		.await(ready);*/
-    
-	
 }

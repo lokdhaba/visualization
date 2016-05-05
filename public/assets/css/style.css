@@ -188,7 +188,6 @@ background-color:#FFFFFF;
 }
 
 #mainGraphDiv div{
- display:inline-block;
  vertical-align:top;
 }
  
@@ -202,16 +201,34 @@ path {
 	stroke-opacity: 0.6;
 	stroke-width:hairline;
 	shape-rendering: geometricPrecision;*/
-	fill:white;
+	fill:gray;
+	stroke: #ffffff;
+    stroke-width: 1px;
   }
+   
+   #download{
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+}
+
+
+.legend {
+	border:2px solid #000000;
+}
+.legend-box {
+  fill:none;
+  stroke:black;
+  stroke-width: 1px;
+  opacity:1;}
    
 .domain { 
   fill: none; 
   stroke: #c0c0c0; 
-  stroke-width; 1px; 
+  stroke-width: 1px; 
 }
 .counties {
-stroke: #c0c0c0;
+	stroke: #c0c0c0;
 	stroke-opacity: 0.4;
 	stroke-width:0.05em;
 	shape-rendering: geometricPrecision;
@@ -225,26 +242,6 @@ stroke: #c0c0c0;
 }
 
 
-.q0-9 { fill:rgb(255, 179, 179); }
-.q1-9 { fill:rgb(255, 128, 128); }
-.q2-9 { fill:rgb(255, 102, 102); }
-.q3-9 { fill:rgb(230, 0, 0); }
-.q4-9 { fill:rgb(77, 0, 0); }
-
-div.tooltip {
-	position: absolute;
-	text-align: left;
-	min-width: 150px;
-	
-	padding: 2px;
-	font-size: 12px;
-	background: #000000;
-	border: 1px;
-	border-radius: 8px;
-	pointer-events: none;
-	color:#FFFFFF;
-}
-
 nav.navbar {
 
 min-height: 50px;
@@ -252,17 +249,6 @@ margin-bottom: 0px;
 border: 1px solid;
 }
 
-
-div#gen_election {
-    width: 25%;
-    height: 50px;
-    float: left;
-	margin-left:400px;
-}
-div#assembly_election {
-    margin-left: 10%;
-    height: 50px;
-}
 
 div#election {
     width: 100%;
@@ -293,46 +279,7 @@ div#election table {
 	/*display:initial;*/
 	margin-left:-150px;
 }
-ul.legend_list  > li {
 
-	list-style-type:none;
-	list-style-position: inside;
-    border-left-width: 25px;
-    border-left-style: solid;
-    font-size: .75em;
-    width:250px;
-    padding: 0px 0px 0px 5px;
-	margin-right: 10px;					
-}
-
-@media only screen and (max-width: 900px) {
-
-    /* For mobile phones: */
-    .legend_list {
-		width:100%;
-		text-align:left;
-		max-height:100px;
-		position:relative;
-		margin: 0px 0 0px 0;	
-		text-align:left;
-		display: inline-table;
-	}
-	ul.legend_list  > li {
-
-		display: inline-block;
-		border-left-width: 20px;
-		border-top-width: 0px;
-		border-left-style: solid;
-		font-size: .65em;
-		width:200px;
-		padding: 0px 0px 0px 5px;
-		margin: 0;	
-		text-align:left;	
-		white-space: nowrap; 
-		line-height:10px;
-		height:10px;
-	}
-}
 .popover {
  font-size:10px;
 }
@@ -364,3 +311,34 @@ vertical-align:middle !important;
 #filterdiv {text-align:left; }
 
 svg {text-align:left;}
+
+.graph_area {
+	padding:40px 10px 50px;
+}
+
+#outer_div {
+  position: relative;
+}
+
+#inner_div {
+	
+  margin: auto;  
+  position: absolute;
+  left:0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width:700px;
+}
+
+#download {
+  font: bold 11px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  padding: 2px 6px 2px 6px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+}

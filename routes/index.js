@@ -100,7 +100,7 @@ router.get('/api/elections/ge_voteshares', function (req, res) {
     })
 });
 router.get('/api/elections/ge_womens', function (req, res) {
-    ge_womens.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
+    ge_womens.find({}, { "_id": 0 }, function (err, elections) {
         res.json(elections);
     })
 });
@@ -157,21 +157,7 @@ router.get('/api/ge/parties/:year/:limit', function (req, res) {
 	}
 });
 
-/*
-aggregate( [
-	{ $match: { "State": "Bihar", "Year":2010 } },
-   {
-     $group: {
-        _id: "$cust_id",
-        count: { $sum: 1 }
-     }
-   },
-   { $sort: { total: 1 } },
-   { $limit: 15}
-   
-] )
-aggregate([ { $group: {"_id":"$account" , "number":{$sum:1}} } ])
-*/
+
 //To get unique states
 //-------------------
 //api/ae/states  - ae_maps
@@ -181,18 +167,6 @@ router.get('/api/ae/states', function (req, res) {
            res.json(elections);
         })
 });
-
-
-//To get unique years
-//-------------------
-//api/ge/year  - ge_maps
-router.get('/api/ge/year', function (req, res) {
-        ge_maps.find({}).distinct("Year", function (err, elections) {
-           if (err) { res.send(err) };
-           res.json(elections);
-        })
-});
-
 
 
 //To get unique years based on a specific state
@@ -213,8 +187,23 @@ router.get('/api/ae/year/:state', function (req, res) {
 });
 
 
+//To get unique years
+//-------------------
+//api/ge/year  - ge_maps
+router.get('/api/ge/year', function (req, res) {
+        ge_maps.find({}).distinct("Year", function (err, elections) {
+           if (err) { res.send(err) };
+           res.json(elections);
+        })
+});
 
-//api to retreive data for elections based on state and year passed
+
+
+
+
+
+
+
 router.get('/api/ae/elections/:state/:year/gender/:searchvalue', function (req, res) {
 	var data = getdata(req, res);
 	var arsearch = data.searchvalue.split(',');
@@ -234,7 +223,7 @@ router.get('/api/ae/elections/:state/:year/gender/:searchvalue', function (req, 
     }
 });
 
-//api to retreive data for elections based on state and year passed
+
 router.get('/api/ae/elections/:state/:year/religion/:searchvalue', function (req, res) {
 	var data = getdata(req, res);
 	var arsearch = data.searchvalue.split(',');
@@ -252,6 +241,7 @@ router.get('/api/ae/elections/:state/:year/religion/:searchvalue', function (req
         })
     }
 });
+
 
 //api to retreive data for elections based on state and year passed
 router.get('/api/ae/elections/:state/:year/community/:searchvalue', function (req, res) {
@@ -312,23 +302,6 @@ router.get('/api/ae/elections/:state/:year', function (req, res) {
 });
 
 
-router.get('/api/ge/elections/:year', function (req, res) {
-	var data = getdata(req, res);
-    if (data.year != null) {
-		ge_maps.find(
-            {
-                "Year": Number(data.year)
-
-            }, {"_id":0}
-        , function (err, elections) {
-            if (err) { res.send(err) };
-
-            //send list of election data
-            res.json(elections);
-        })
-    }
-});
-
 
 router.get('/api/elections/ae/filter/:state/:year/:filtervalue', function (req, res) {
 	var data = getdata(req, res);
@@ -375,6 +348,27 @@ router.get('/api/ae/elections/:state/:year/position/:position', function (req, r
 });
 
 
+
+
+
+
+
+router.get('/api/ge/elections/:year', function (req, res) {
+	var data = getdata(req, res);
+    if (data.year != null) {
+		ge_maps.find(
+            {
+                "Year": Number(data.year)
+
+            }, {"_id":0}
+        , function (err, elections) {
+            if (err) { res.send(err) };
+
+            //send list of election data
+            res.json(elections);
+        })
+    }
+});
 
 router.get('/api/ge/elections/:year/position/:position', function (req, res) {
 	var data = getdata(req, res);
