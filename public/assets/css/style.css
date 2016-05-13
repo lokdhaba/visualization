@@ -14,6 +14,7 @@
 /*=======================================
     GENERAL STYLES
 ==================================================*/
+
 body {
     font-family: 'Ruluko', sans-serif;
     font-size:14px;
@@ -201,18 +202,11 @@ path {
 	stroke-opacity: 0.6;
 	stroke-width:hairline;
 	shape-rendering: geometricPrecision;*/
-	fill:gray;
+	fill:#D0D0D0;
 	stroke: #ffffff;
     stroke-width: 1px;
   }
    
-   #download{
-    cursor: pointer;
-    text-decoration: none;
-    color: black;
-}
-
-
 .legend {
 	border:2px solid #000000;
 }
@@ -236,7 +230,6 @@ path {
 
 .states1 {
   fill: none;
-
   stroke-width: 0.25px;
   stroke-linejoin: round;
 }
@@ -277,7 +270,12 @@ div#election table {
 	min-width:200px;
 	text-align:left;
 	/*display:initial;*/
-	margin-left:-150px;
+	margin-left:-40px;
+	list-style-type:none;
+}
+.legend_list input[type="checkbox"] {
+	float:left;
+	
 }
 
 .popover {
@@ -331,14 +329,55 @@ svg {text-align:left;}
   width:700px;
 }
 
-#download {
-  font: bold 11px Arial;
-  text-decoration: none;
-  background-color: #EEEEEE;
-  color: #333333;
-  padding: 2px 6px 2px 6px;
-  border-top: 1px solid #CCCCCC;
-  border-right: 1px solid #333333;
-  border-bottom: 1px solid #333333;
-  border-left: 1px solid #CCCCCC;
+
+.legend rect, .legend text {cursor:pointer;}
+#filtervalued {
+	padding:20px 5px 5px;
+	
+}
+
+.legendtooltip {
+     width: 120px;
+    color: gray;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+transition: opacity 1s;
+background-color: #ececec;
+    box-shadow:5px 5px 10px #888888;
+
+}
+dialog {  
+    width: 500px;  
+    background:#e8e8e8;
+    border: 1px solid #dadada;
+    font-family:sans-serif;
+    padding: 5px 10px 20px 20px;
+	position:absolute;
+}  
+
+
+.svg-container {
+ position: relative;
+ width: 100%;
+ padding-bottom: 10%; /* depends on svg ratio, for my zebra height/width = 1.2 so padding-bottom = 50% * 1.2 = 60% */
+ 
+ vertical-align: middle; /* top | middle | bottom ... do what you want */
+}
+.svg-content-responsive {
+    display: block;
+
+  top: 0;
+  left: 0;
+ 
+}
+svg:not(:root) {
+    overflow: overlay !important;
+}
+
+#iframe_width, #iframe_height {
+	width:50px;
+}
+#download, #embed_btn {
+	margin-bottom:30px;
 }

@@ -123,7 +123,7 @@ router.get('/api/ae/parties/:state/:year/:limit', function (req, res) {
 			{ $match: { "State": data.state, "Year":Number(data.year) } },
 			{
 			 $group: {
-				party: "$Party1",
+				_id: "$Party1",
 				count: { $sum: 1 }
 			 }
 		   },
@@ -139,12 +139,13 @@ router.get('/api/ae/parties/:state/:year/:limit', function (req, res) {
 
 router.get('/api/ge/parties/:year/:limit', function (req, res) {
 	var data = getdata(req, res);
-    if (data.state != null) {
-		ae_maps.aggregate( [
-			{ $match: { "State": data.state} },
+    if (data.year != null) {
+
+		ge_maps.aggregate( [
+			{ $match: { "Year": Number(data.year), "Position":1} },
 			{
 			 $group: {
-				party: "$Party1",
+				_id: "$Party1",
 				count: { $sum: 1 }
 			 }
 		   },

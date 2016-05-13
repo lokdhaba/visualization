@@ -54,7 +54,7 @@
 				</div>
 				<div class="state">
 					<b>State:</b>&nbsp;<br>
-					<select id="state">
+					<select id="state" class="selectpicker">
 						<option value=''>Select</option>
 						<!--<option value='Bihar'>Bihar</option>-->
 					</select>
@@ -62,13 +62,13 @@
 				&nbsp;&nbsp;
 				<div>
 					<b>Year:</b>&nbsp;<br>
-					<select id="year">
+					<select id="year" class="selectpicker">
 						<option value=''>Select</option>
 					</select>
 				</div>	
 
 				<div><b>Visualization type</b>&nbsp;<br>
-					<select id="viz_type">
+					<select id="viz_type" class="selectpicker">
 							<option value=''>Select</option>
 							<option value='charts'>Charts/Graphs</option>
 							<option value='maps'>Maps</option>
@@ -77,7 +77,7 @@
 					
 				<div class='results_div'>
 					<b>Results for&nbsp;</b><br>
-					<select class="ae_select" id="ae_graph_chart_select" name="viz_options">
+					<select class="ae_select selectpicker" id="ae_graph_chart_select" name="viz_options">
 							<option value=''>Select</option>
 							<option value='voter_turnout'>Voter Turnout</option>
 							<option value='parties_contesting'>Total Contested and Represented Parties</option>
@@ -86,21 +86,21 @@
 							<option value='contested_deposit_lost'>Total Contested and Deposits Saved</option>
 							<option value='women'>Gender-wise Winners and Candidates</option>
 					</select>
-					<select class="ae_select" id="ae_map_select" name="viz_options">
+					<select class="ae_select selectpicker" id="ae_map_select" name="viz_options">
 							<option value=''>Select</option>
-							<option value='gender#main'>Gender-wise Winners</option>
-							<option class="parties" value='vote_share#individual'>Party-wise Voteshares</option>
-							<option class="parties" value='position#individual'>Party-wise Positions</option>
-							<option value='candidates#main'>Total candidates in each constituency</option>
-							<option value='Turnout#main'>Voter Turnout</option>
-							<option value='Electors#main'>Total Electors</option>
-							<option value='nota#main'>NOTA</option>
-							<option value='margin_victory#main'>Victory Margin</option>
-							<option value='community#main'>Constituency type wise Winners</option>
-							<option value='religion#main'>Religion-wise Winners</option>
-							<option value='winners#main'>Party-wise Winners</option>
+							<option value='gender'>Gender-wise Winners</option>
+							<option class="parties" value='vote_share'>Party-wise Voteshares</option>
+							<option class="parties" value='position'>Party-wise Positions</option>
+							<option value='candidates'>Total candidates in each constituency</option>
+							<option value='Turnout'>Voter Turnout</option>
+							<option value='Electors'>Total Electors</option>
+							<option value='nota'>NOTA</option>
+							<option value='margin_victory'>Victory Margin</option>
+							<option value='community'>Constituency type wise Winners</option>
+							<option value='religion'>Religion-wise Winners</option>
+							<option value='winners'>Party-wise Winners</option>
 					</select>
-					<select class="ge_select" id="ge_graph_chart_select" name="viz_options">
+					<select class="ge_select selectpicker" id="ge_graph_chart_select" name="viz_options">
 							<option value=''>Select</option>
 							<option value='voter_turnout'>Voter Turnout</option>
 							<option value='parties_contesting'>Total Contested and Represented Parties</option>
@@ -109,23 +109,23 @@
 							<option value='contested_deposit_lost'>Total Contested and Deposits Saved</option>
 							<option value='women'>Gender-wise Winners and Candidates</option>
 					</select>
-					<select class="ge_select" id="ge_map_select" name="viz_options">
+					<select class="ge_select selectpicker" id="ge_map_select" name="viz_options">
 							<option value=''>Select</option>
-							<option value='winners#main'>Regional Distribution of Winners</option>
-							<option class="parties" value='voteshare#individual'>Individual party vote share across constituencies</option>
-							<option value='turnout#main'>Turnout across constituencies</option>
+							<option value='winners'>Regional Distribution of Winners</option>
+							<option class="parties" value='voteshare'>Individual party vote share across constituencies</option>
+							<option value='turnout'>Turnout across constituencies</option>
 					</select>
 				</div>
 				&nbsp;&nbsp;
 				<div class="parties_td">
 					<b>Parties&nbsp;</b><br>
-					<select id="parties">
+					<select id="parties" class="selectpicker">
 						<option value=''>Select</option>
 						<option value='BJP'>BJP</option>
 						<option value='INC'>INC</option>
 					</select>
 				</div>
-				<div class='button_center'><br><input type="button" id="show_viz" class="disabledButton1" value="Go" /></div>				
+				<div class='button_center'><br><input type="button" id="show_viz" class="btn btn-primary" value="Go" style="padding:0px 10px;"/></div>				
 			</span>
 		</form>
 	</div>
@@ -137,12 +137,12 @@
 
 				<div class="row">
 					<div id="side_panel" class="col-sm-2">
-						<input type="hidden" value="" name="filter_path" />
+						<a class="btn btn-default" style="width:167px;" ><b>Filter</b></a>
 						<div id="filtervalued">
-							<input type="checkbox" name="filtervalue" style="display:none" />
 						</div>
-						<a href="#" id="download" download>Download As SVG</a>
-						
+						<a href="#" class="btn btn-primary" id="download" download>Download As SVG</a>
+						<button type="button" id="embed_btn" class="btn btn-primary" data-toggle="modal" data-target="#myModal">Embed code</button>
+
 					</div>
 					
 					<div id="mainGraphDiv" class="col-md-10">
@@ -151,7 +151,7 @@
     <script>
 	//var myselect = document.getElementById("year"), year = new Date().getFullYear();
 	//var gen = function(max){do{myselect.add(new Option(year,year--),null);max--}while(max>0);}(45);
-	
+		$("#side_panel").hide();
 		$(".state").hide();
 		$(".parties_td").hide();
 		$(".results_div").hide();
@@ -166,7 +166,7 @@
 		var year = '';
 		var years_list = {};
 		$.getJSON('api/ge/year', function(data) {
-			console.log("inside year");
+			//console.log("inside year");
 			$('#year').find('option').remove().end().append('<option value="">Select</option>');
 			var s1 = $("#year");
 			$.each(data, function(i, item) {
@@ -303,9 +303,6 @@
 			party = $('#parties').find(":selected").val();
 		});
 
-		
-		
-		
 		$("input#show_viz").on('click',function () {
 			
 			createmaps('','','');
@@ -313,8 +310,8 @@
 			
 		});
 	
-	function createmaps(filtername, filtervalue, year_from_slider) {
-		//$('#filtervalued').empty();
+	function createmaps(year_from_slider) {
+		$('#filtervalued').empty();
 		$('#selectionbox > input:hidden').attr("disabled",true);
 		
 		$( "#mainGraphDiv" ).empty();
@@ -341,30 +338,27 @@
 		} else {
 			$(".error_msg").hide();
 		}
-		
+		//var url = "http:localhost:1234\?type=ae&state=Bihar&year=2016&viz=charts&dis=women";
+		var embedd_path= window.location+'embed.html?type='+elect_type+'_'+viz_type+'&state='+state+'&year='+year+'&dis='+viz_option+'&party='+party;
+		$("#embed_url").html(embedd_path);
+	
 		if (viz_type == 'maps' && elect_type == 'GE') {
-			showGeMapVizualisation(elect_type, state, year, viz_option, party, filtername, filtervalue );
+			showGeMapVizualisation(elect_type, state, year, viz_option, party );
 		} else if (viz_type == 'charts' && elect_type == 'GE') {
 			showGeChartsVizualisation(elect_type, state, '2014', viz_option, party );
 		} else if (viz_type == 'maps' && elect_type == 'AE') {
-			showAeMapVizualisation(elect_type, state, year, viz_option, party, filtername, filtervalue );
+			showAeMapVizualisation(elect_type, state, year, viz_option, party);
 		} else if (viz_type == 'charts' && elect_type == 'AE') {
 			showAeChartsVizualisation(elect_type, state, '2015', viz_option, party );
 		}
 		$("#download").show();
+		$("#side_panel").show();
 		$(".graph_area").append("<div id='outer_div'><div id='inner_div' class='slider'></div><div>");
 		generateSlider(years_list, year)
 	}
 	
 	function generateSlider(data, selected_value) {
-	// alert('123');
-		// slider part
-	//var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-	// lets be fancy for the demo and select the current month.
-	//var activeMonth = new Date().getMonth();
-
-	$(".slider")
-						
+		$(".slider")				
 		// activate the slider with options
 		.slider({ 
 			min: 0, 
@@ -377,24 +371,25 @@
 			rest: "label",
 			labels: data
 		})
-						
-		// and whenever the slider changes, lets echo out the month
 		.on("slidechange", function(e,ui) {
-			createmaps('','', data[ui.value]);
-			//$("#labels-months-output").text( "You selected " + data[ui.value] + " (" + ui.value + ")");
-			//alert(data[ui.value]);
+			createmaps(data[ui.value]);
 		});
 	  }
-	$(document).ready(function(){
-	  $('body').on('click', 'input[type=checkbox][name=filtervalue]', function(){
-	  
-		var checkedValues = $('input[name="filtervalue"]:checked').map(function() {
-			return this.value;
-		}).get();
-		var filtername = $('input[name="filter_path"]').val();
-		createmaps(filtername, checkedValues, '');
+	  $("body").on('input','.iframedim', function(){
+			var fid = $(this).attr('id').replace('iframe_','');
+			if($("#viz_type").val() == 'maps') {
+					$("#iframew").html($(this).val());
+					$("#iframeh").html($(this).val());
+					$(".iframedim:not("+$(this).attr('id')+")").val($(this).val());
+			} else {
+				if(fid == 'width') {
+					$("#iframew").html($(this).val());
+				} else {
+					$("#iframeh").html($(this).val());
+				}
+			}
 	  })
-	})
+	  
 	</script>
 						<div id="slider_area" style="width:300px"></div>
 					</div>					
@@ -404,6 +399,29 @@
 
     <!-- BOOTSTRAP CORE SCRIPT   -->
     <script src="assets/plugins/bootstrap.js"></script>
+	<!-- Modal -->
+	<div id="myModal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
 
+		<!-- Modal content-->
+		<div class="modal-content">
+		  <div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+			<h4 class="modal-title">Embed code  </h4>
+		  </div>
+		  <div class="modal-body">
+		  <p>Size</p>
+		  <p>width:<input type="number" name="iframe_width" id="iframe_width" class="iframedim" value="400"/> x height:<input type="number" name="iframe_height" id="iframe_height" class="iframedim" value="400"/></p>
+		  <pre><code>
+		  &lt;iframe width=&quot;<label id="iframew">400</label>&quot; height=&quot;<label id="iframeh">400</label>&quot; scrolling=&quot;no&quot; src=&quot;<label id="embed_url"></label>&quot;&gt;&lt;/iframe&gt;
+		  </code></pre>
+		  </div>
+		  <div class="modal-footer">
+			<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+		  </div>
+		</div>
+
+	  </div>
+	</div>
 	</body>
 </html>
