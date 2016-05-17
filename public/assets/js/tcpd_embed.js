@@ -769,7 +769,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		
 		series.append("path")
 			.attr("class", "line")
-			.attr("class", function(d) { return 'class_'+d.name.replace(/ /g,"_");})
+			.attr("class", function(d) { return 'class_'+getCleanedClassname(d.name);})
 			.attr("d", function (d) { return line(d.values); })
 			.style("stroke", function (d) {
 				if(color_code_legends[0][d.name]) {
@@ -788,7 +788,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.data(function (d) { return d.values; })
 			.enter().append("circle")
 			.attr("class", "point")
-			.attr("class", function(d) { return 'class_'+d.name.replace(/ /g,"_");})
+			.attr("class", function(d) { return 'class_'+getCleanedClassname(d.name);})
 			.attr("cx", function (d) { return x(d.label) + x.rangeBand()/2; })
 			.attr("cy", function (d) { return y(d.value); })
 			.attr("r", "5px")
@@ -826,7 +826,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 						.attr("class", "legend");
 						//.attr("transform", function(d, i) {return "translate(" + i * 110 + ",-25)"; })
 		  legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+d.replace(/ /g,"_");})
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 					.attr("x", chart_area.width+10)
 					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
 					.attr("width", ls_w)
@@ -845,7 +845,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					});
 					 
 				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+d.replace(/ /g,"_");})
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 					.attr("x", chart_area.width+40)
 					.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
 					.style("font-size","12px")
@@ -853,7 +853,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					.text(function (d) { return d; })
 					.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d.replace(/ /g,"_"), lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
 					});
 					
 				createlegendBorder(svg)
@@ -886,14 +886,14 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 							.data(varNames.slice().reverse())
 							.enter().append('li')
 							.append('label')
-							.attr('for',function(d) { return 'class_'+d.replace(/ /g,"_");})
+							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
 							.text(function(d){  return d; })
 							.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d.replace(/ /g,"_");})
-							.attr("name", function(d) { return 'class_'+d.replace(/ /g,"_");})
-							.attr("id", function(d) { return 'class_'+d.replace(/ /g,"_");})
+							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
 							.on("click", function (d, i) {
 								sidefilterGraph(this);
 							});
@@ -1042,7 +1042,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
 		var chart_area = chart_dim[0][0].getBBox();
 		var ls_w = 20, ls_h = 15;
-		console.log(chart_area);
+		//console.log(chart_area);
 		var legend = svg.append("g")
 						.attr("class","legend_grp")
 						.attr("transform", "translate(0," +(title_area.height ) + ")")
@@ -1052,7 +1052,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 						.attr("class", "legend");
 
 		  legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+d.replace(/ /g,"_");})
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 					.attr("x", chart_area.width+10)
 					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
 					.attr("width", ls_w)
@@ -1061,11 +1061,11 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 					.style("opacity", 1)
 					.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d.replace(/ /g,"_"), lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
 					});
 					 
 				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+d.replace(/ /g,"_");})
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 					.attr("x", chart_area.width+40)
 					.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
 					.style("font-size","12px")
@@ -1073,7 +1073,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 					.text(function (d) { return d; })
 					.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d.replace(/ /g,"_"), lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
 					});
 				createlegendBorder(svg)
 				resizeSvg(svg, '.chart_area');	
@@ -1105,14 +1105,14 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 							.data(ageNames.slice().reverse())
 							.enter().append('li')
 							.append('label')
-							.attr('for',function(d) { return 'class_'+d.replace(/ /g,"_");})
+							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
 							.text(function(d){  return d; })
 							.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d.replace(/ /g,"_");})
-							.attr("name", function(d) { return 'class_'+d.replace(/ /g,"_");})
-							.attr("id", function(d) { return 'class_'+d.replace(/ /g,"_");})
+							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
 							.on("click", function (d, i) {
 								sidefilterGraph(this);
 							});				
@@ -1515,9 +1515,9 @@ function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 	width  = width - margin.left - margin.right,
 	height = height  - margin.top  - margin.bottom;
 	
-	var color_domain = [20,30,40,50,60];
-	var ext_color_domain = [0,20,30,40,50,60];
-	var legend_labels = ["<20%", "20-30%", "30-40%", "40-50%", "50-60%", ">60%"];
+	var color_domain = [10,20,30,40];
+	var ext_color_domain = [0,10,20,30,40];
+	var legend_labels = ["<10%", "10-20%", "20-30%", "30-40%", ">40%"];
 
 	
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
@@ -1804,9 +1804,9 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				.attr("class", function(d) { 
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
 						if(legend_labels.indexOf(rateById[d.properties[mappingColumn]][col2Head]) == -1) {
-								return 'class_Others';
+							return 'class_Others';
 						} else {
-							return 'class_'+getCleanedClassname(rateById[d.properties[mappingColumn]][col2Head])) 
+							return 'class_'+getCleanedClassname(rateById[d.properties[mappingColumn]][col2Head]);
 						}
 					}
 				})
