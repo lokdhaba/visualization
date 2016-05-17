@@ -48,35 +48,54 @@ router.get('/api/elections/ae_partys', function (req, res) {
         res.json(elections);
     })
 });
-router.get('/api/elections/ae_contested_deposit_losts', function (req, res) {
-    ae_contested_deposit_losts.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_contested_deposit_losts/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_contested_deposit_losts.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
+    
 });
-router.get('/api/elections/ae_parties_contests', function (req, res) {
-    ae_parties_contests.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_parties_contests/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_parties_contests.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
 });
-router.get('/api/elections/ae_seatshares', function (req, res) {
-    ae_seatshares.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_seatshares/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_seatshares.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
 });
-router.get('/api/elections/ae_voteshares', function (req, res) {
-    ae_voteshares.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_voteshares/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_voteshares.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
 });
-router.get('/api/elections/ae_womens', function (req, res) {
-    ae_womens.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_womens/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_womens.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
 });
-router.get('/api/elections/ae_voter_turnouts', function (req, res) {
-    ae_voter_turnouts.find({}, { "State": 0, "_id": 0 }, function (err, elections) {
-        res.json(elections);
-    })
+router.get('/api/elections/ae_voter_turnouts/:state', function (req, res) {
+	var data = getdata(req, res);
+	if (data.state != null) {
+		ae_voter_turnouts.find({"State": data.state}, { "State": 0, "_id": 0 }, function (err, elections) {
+			res.json(elections);
+		})
+    }
 });
 
 router.get('/api/elections/ge_contested_deposit_losts', function (req, res) {

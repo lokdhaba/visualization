@@ -306,8 +306,7 @@
 		$("input#show_viz").on('click',function () {
 			
 			createmaps('','','');
-			
-			
+	
 		});
 	
 	function createmaps(year_from_slider) {
@@ -345,11 +344,11 @@
 		if (viz_type == 'maps' && elect_type == 'GE') {
 			showGeMapVizualisation(elect_type, state, year, viz_option, party );
 		} else if (viz_type == 'charts' && elect_type == 'GE') {
-			showGeChartsVizualisation(elect_type, state, '2014', viz_option, party );
+			showGeChartsVizualisation(elect_type, state, year, viz_option, party );
 		} else if (viz_type == 'maps' && elect_type == 'AE') {
 			showAeMapVizualisation(elect_type, state, year, viz_option, party);
 		} else if (viz_type == 'charts' && elect_type == 'AE') {
-			showAeChartsVizualisation(elect_type, state, '2015', viz_option, party );
+			showAeChartsVizualisation(elect_type, state, year, viz_option, party );
 		}
 		$("#download").show();
 		$("#side_panel").show();

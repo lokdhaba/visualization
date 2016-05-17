@@ -167,8 +167,8 @@ function resizeSvg(svg, drawAreaClass) {
 	}
 	if(diff_height > 0) {
 		svg.attr('height',svg_area.height+ Math.abs(diff_height)+5)
-	}*/
-	
+	}
+	*/
 }
 
 function writeDownloadLink(){
@@ -302,32 +302,32 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 	switch(viz_option) {
 		
 		case 'voter_turnout':
-			filepath = filepath+'ae_voter_turnouts';
+			filepath = filepath+'ae_voter_turnouts/'+state;
 			createGridLineGraph(600, 300,filepath,0, 'Voter turnout', state+' '+year,'Year','Year of election','Turnout %',usercolors,20,0);	
 			break;
 			
 		case 'parties_contesting':
-			filepath = filepath+'ae_parties_contests';
+			filepath = filepath+'ae_parties_contests/'+state;
 			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'Year', 'Year of election', 'Parties contested', usercolors,0);	
 			break;
 			
 		case 'seatshare':
-			filepath = filepath+'ae_seatshares';
+			filepath = filepath+'ae_seatshares/'+state;
 			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'Year', ' Year of election', 'Seat share %', usercolors,0,0);
 			break;
 			
 		case 'voteshare':
-			filepath = filepath+'ae_voteshares';
+			filepath = filepath+'ae_voteshares/'+state;
 			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'Year', 'Year of election', 'Vote share %',usercolors,0,0);	
 			break;
 		
 		case 'contested_deposit_lost':
-			filepath = filepath+'ae_contested_deposit_losts';
+			filepath = filepath+'ae_contested_deposit_losts/'+state;
 			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', state+' '+year, 'Year', 'Year of election', 'Total Candidates',usercolors,0);	
 			break;
 		
 		case 'women':
-			filepath = filepath+'ae_womens';
+			filepath = filepath+'ae_womens/'+state;
 			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', state+' '+year,'Year', 'Year of election', '% of women winners',usercolors,0,0);
 			break;
 	}
@@ -384,7 +384,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 					
 		case 'margin_victory':
 			filter_column_name = 'Margin_percent';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',column_name,'#756bb1', 'ac',[5,10,20],'%');
+			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',filter_column_name,'#756bb1', 'ac',[5,10,20],'%');
 					break;
 					
 		case 'community':
@@ -689,7 +689,14 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 	}
 			
 	d3.json(path, function (error, data) {
-
+		
+		if(data.length == 0) {
+			svg.append("g")
+			.attr("class","chart_area")
+			.attr("transform", "translate(" + (margin.left+150) + "," +(title_area.height+100 ) + ")")
+			.append("text").text("No Data Available"); 
+			return false;
+		}
 		var labelVar = xAxisHead;
 		var varNames = d3.keys(data[0]).filter(function (key) { return key !== labelVar;});
 		color.domain(varNames);
@@ -958,6 +965,13 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 	var title_area = title_dim[0][0].getBBox();		
 			
 	d3.json(path, function(error, data) {
+		if(data.length == 0) {
+			svg.append("g")
+			.attr("class","chart_area")
+			.attr("transform", "translate(" + (margin.left+150) + "," +(title_area.height+100 ) + ")")
+			.append("text").text("No Data Available"); 
+			return false;
+		}
 		if (error) throw error;
 		var labelVar = xAxisHead;
 		var ageNames = d3.keys(data[0]).filter(function(key) { return key !== labelVar; });
@@ -1518,7 +1532,6 @@ function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 	var color_domain = [10,20,30,40];
 	var ext_color_domain = [0,10,20,30,40];
 	var legend_labels = ["<10%", "10-20%", "20-30%", "30-40%", ">40%"];
-
 	
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
 	
@@ -1766,8 +1779,8 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 		});
 		legend_labels.push('Others');
 		//console.log(count_labels);
-		//other_parties = other_parties.join("<br />");
-		/*var tooltip = d3.select("body")
+		/*other_parties = other_parties.join("<br />");
+		var tooltip = d3.select("body")
 					.append("div")
 					.attr("class","legendtooltip")
 					.style("position", "absolute")
@@ -1804,7 +1817,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				.attr("class", function(d) { 
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
 						if(legend_labels.indexOf(rateById[d.properties[mappingColumn]][col2Head]) == -1) {
-							return 'class_Others';
+								return 'class_Others';
 						} else {
 							return 'class_'+getCleanedClassname(rateById[d.properties[mappingColumn]][col2Head]);
 						}

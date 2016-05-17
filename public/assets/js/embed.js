@@ -33,13 +33,6 @@ $(document).ready(function(){
 			$("#graph_area6").addClass('svg-container');
 			$("#graph_area6 svg").addClass('svg-content-responsive');
 		}
-		
-		console.log(arr);
-		if(arr.length > 0) {
-			console.log(arr);
-		} else {
-			console.log('no val');
-		}
 })
 /*
 eval(function(p,a,c,k,e,d){e=function(c){return c.toString(36)};if(!''.replace(/^/,String)){while(c--){d[c.toString(a)]=k[c]||c.toString(a)}k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c])}}return p}('$(u).k(b(){b a(){4 7=[],3;4 5=h.f.e.n(h.f.e.m(\'?\')+1).9(\'&\');l(4 i=0;i<5.c;i++){3=5[i].9(\'=\');7[3[0]]=3[1]}o 7}4 2={};2=a();g(2[\'d\']!=\'t\'){s(2[\'d\'],2[\'p\'],\'q\',2[\'r\'],\'\')}6.8(2);g(2.c>0){6.8(2)}j{6.8(\'w v\')}})',33,33,'||arr|hash|var|hashes|console|vars|log|split|getUrlVars|function|length|type|href|location|if|window||else|ready|for|indexOf|slice|return|state|2015|dis|showAeChartsVizualisation|undefined|document|val|no'.split('|'),0,{}))
