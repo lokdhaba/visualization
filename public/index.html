@@ -352,8 +352,13 @@
 		}
 		$("#download").show();
 		$("#side_panel").show();
-		$(".graph_area").append("<div id='outer_div'><div id='inner_div' class='slider'></div><div>");
-		generateSlider(years_list, year)
+		if(viz_type == 'maps') {
+			$(".graph_area").append("<div id='outer_div'><div id='inner_div' class='slider'></div><div>");
+			generateSlider(years_list, year)
+		} else {
+			$( ".slider" ).remove();
+		}
+		
 	}
 	
 	function generateSlider(data, selected_value) {

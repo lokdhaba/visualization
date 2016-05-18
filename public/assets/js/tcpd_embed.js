@@ -3,16 +3,25 @@
 //common variables
 var margin = {top: 55, right: 30, bottom: 55, left: 0};
 
+//initialise the project for map
 var projection = d3.geo.mercator().scale(1);
 var path = d3.geo.path().projection(projection);
-var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Center for Political Data, Ashoka University';
-var root_path = 'assets/elections/';
-var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","Turnout","Margin_percent","Runner","Runner_party","Runner_sex"];
 
-var color_codes = d3.map();
+//TCPD name in title
+var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Center for Political Data, Ashoka University';
+
+var root_path = 'assets/elections/';
+
+//List of items to display in popup
+var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","NOTA_percent","Turnout","Margin_percent","Runner","Runner_party","Runner_sex"];
+
+
+
 var empty_area_color = "#D0D0D0";
 var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
 
+//get party color codes
+var color_codes = d3.map();
 $.getJSON("api/party/colors", function(json){
 
 	json.forEach(function(d) { 
@@ -20,41 +29,16 @@ $.getJSON("api/party/colors", function(json){
 	});
 
 });
-
-function doesFileExist(urlToFile) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('HEAD', urlToFile, false);
-    xhr.send();
-
-    if (xhr.status == "404") {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-function getRandomColors(count) {
-	var usercolors = [],colorcode;
-	for(var i=0;i<=30;i++) {
-		colorcode = ((1<<24)*Math.random()|0).toString(16);
-		if(colorcode.length<6) {
-			colorcode = '0'+colorcode;
-		}
-
-		usercolors.push("#"+colorcode);
-	}
-	return usercolors;
-}
-
-function prepare_headings(gSeqNo,mheading,sheading) {
-
-   var divid = 'graph_area'+gSeqNo;
-    $('#mainGraphDiv').append('<div style="text-align:center" id="'+divid+'" class="graph_area svg-container"></div>'); 
+/*** follwoing three functions for embedd responsive display **/
+//To create div with specific id for SVG maps/graphs drawing area
+function create_draw_area(gSeqNo,mheading,sheading) {
+	var divid = 'graph_area'+gSeqNo;
+	$('#mainGraphDiv').append('<div style="text-align:center" id="'+divid+'" class="graph_area svg-container"></div>'); 
    return divid;
+   
 }
- 
-function getUrlVars()
-{
+
+function getUrlVars() {
 
 	var vars = [], hash;
 	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
@@ -66,7 +50,9 @@ function getUrlVars()
 	return vars;
 }
 
+//To create svg inside the divid
 function create_svg(divid, width, height) { 
+
 	var svg = d3.select("#"+divid).append("div").append("svg")
 			.attr("preserveAspectRatio", "xMinYMin meet")
 	if(getUrlVars()['type'].indexOf('charts') > -1) {
@@ -79,8 +65,9 @@ function create_svg(divid, width, height) {
 				
 	return svg;
 }
+/*** end responsive display **/
 
-
+//Get map centerpoints to project map according to the page. Used boundary points from geojson file
 function getMapCenterScale(boundry_points,width, height) {
 
 	var b = boundry_points;
@@ -92,9 +79,7 @@ function getMapCenterScale(boundry_points,width, height) {
 }
 
 
-
-//console.log(getLegendRanges([20,30,40,50,60],'%'));
-
+//Create legends for maps : eg getLegendRanges([20,30,40,50,60],'%') => o/p: [0,20,30,40,50,60],["<20%","20-30%",...,">60%"]
 function getLegendRanges(range_values, unit) {
 
 	range_values.reverse();
@@ -103,27 +88,25 @@ function getLegendRanges(range_values, unit) {
 	//var range_values_zeroed = range_values;
 	var range =[];
 	for(var i=0;i<range_values.length;i++){
-		if(i==0){
+		if(i==0) {
 			range[i] = '<'+range_values[i+1]+unit;
-		} else if(i == range_values.length-1){
+		} else if(i == range_values.length-1) {
 			range[i] = '>'+range_values[i]+unit;
 		} else {
 			range[i] = range_values[i]+unit+'-'+range_values[i+1]+unit;
 		}
-		
-		
 	}
 	return [range_values,range];
 }
 
-
+//Creates border to legend based on the legend width and height, specific to SVG
 function createlegendBorder(svg) {
 	var legendPadding= 5;
 	var legend_box = svg.selectAll(".legend-box").data([true]);
 
 	legend_box.enter().append("rect")
 	.style("fill","none")
-	.style("stroke","black")
+	.style("stroke","gray")
     .style("stroke-width","1px")
     .style("opacity","1")
 	.classed("legend-box",true)
@@ -132,15 +115,18 @@ function createlegendBorder(svg) {
 	var legend_grp_size = legend_grp[0][0].getBBox();
 	if(legend_grp_size.height > 0) {
 		legend_box.attr("x",(legend_grp_size.x-legendPadding))
-			.attr("y",(legend_grp_size.y-legendPadding+71))
+			.attr("y",(legend_grp_size.y-legendPadding+69))
 			.attr("height",(legend_grp_size.height+2*legendPadding))
 			.attr("width",(legend_grp_size.width+2*legendPadding))
 	}
 	
 }
 
+//Resizes SVG when the legends takes more space and cuts off. 
+//Its calculated based on the size of title, svg and legends
 function resizeSvg(svg, drawAreaClass) {
-	/*var	title_dim = svg.selectAll(".title_grp").data([true]) ;
+	/*commented for embedd responsive display
+	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
 	var title_area = title_dim[0][0].getBoundingClientRect();
 	
 	var	ldgrp_dim = svg.selectAll(".legend-box").data([true]) ;
@@ -160,8 +146,6 @@ function resizeSvg(svg, drawAreaClass) {
 		
 	var diff_width = (map_area.width + ldgrp_area.width) - svg_area.width
 	var diff_height = (map_area.height + title_area.height) - svg_area.height
-	//var diff_height = (map_area.y + map_area.height) - (Math.abs(svg_area.y) + svg_area.height)
-				//console.log(diff_width +','+diff_height);
 	if(diff_width > 0) {
 		svg.attr('width',svg_area.width+ Math.abs(diff_width)+right_padding)
 	}
@@ -171,6 +155,17 @@ function resizeSvg(svg, drawAreaClass) {
 	*/
 }
 
+//removes special characters from for the given value
+function getCleanedClassname(value) {
+	if(isNaN(value)) {
+		return value.replace(/\W/g, "0");
+	} else {
+		return value;
+	}
+	
+}
+
+//create link for downloading the SVG area
 function writeDownloadLink(){
 	var html = d3.select("svg")
 		.attr("title", "svg_title")
@@ -192,7 +187,7 @@ function writeDownloadLink(){
 };
 
 
-
+//Toggles the side filter checkboxes on/off based on the selection in legend
 function  checkboxToggle(obj) {
 	
 	$("input[type=checkbox][name^=class_]").prop("checked", $(obj).prop('checked'));
@@ -201,6 +196,8 @@ function  checkboxToggle(obj) {
 		sidefilterGraph(this);
 	})
 }
+
+//Filters the graph/map by Legend by applying opacity to that element either 0 or 1
 function filterGraph(aType, aVisibility) {
 	var  newOpacity = '', legendOpacity = '';
 	if(aVisibility < 1) {
@@ -219,6 +216,7 @@ function filterGraph(aType, aVisibility) {
 	changeAllChkBox();
 }
 
+//Filters the graph/maps based by checkbox selection on the side panel 
 function sidefilterGraph( obj) {
 	if($(obj).prop('checked') == true) {
 		d3.selectAll("."+obj.value).transition().duration(300).style("opacity", "1");
@@ -230,6 +228,7 @@ function sidefilterGraph( obj) {
 	changeAllChkBox();
 }
 
+//To change the 'ALL' checkbox value on selecting or deselecting the other checkboxes
 function changeAllChkBox() {
 	var count = 0;
 	$("input[type=checkbox][name^=class_]").each(function(){
@@ -244,7 +243,7 @@ function changeAllChkBox() {
 	}
 }
 
-
+//Create title for maps/graphs for specific svg
 function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	
 	var title = svg.append("g")
@@ -265,7 +264,7 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .attr("y", 40 )
 	  .attr("text-anchor", "middle")
 	  .style("font-size","18px")
-	  .text(sheading);
+	  .text(sheading.replace("_",' '));
 	  
 	  title.append("text")
 	  .attr("class", "title")
@@ -293,8 +292,10 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 
 }
 
+//Creates AE charts based on the selection box values
+//showAeChartsVizualisation('AE', 'Bihar', '1962', 'voter_turnout', '' )
 function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) {
-	var usercolors = getRandomColors(10);
+	var usercolors = d3.scale.category10();
 	var filepath ='';
 	
 	
@@ -303,40 +304,40 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 		
 		case 'voter_turnout':
 			filepath = filepath+'ae_voter_turnouts/'+state;
-			createGridLineGraph(600, 300,filepath,0, 'Voter turnout', state+' '+year,'Year','Year of election','Turnout %',usercolors,20,0);	
+			createGridLineGraph(600, 300,filepath,0, 'Voter turnout', state+' '+year,'Year','Year of election','Turnout %',20);	
 			break;
 			
 		case 'parties_contesting':
 			filepath = filepath+'ae_parties_contests/'+state;
-			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'Year', 'Year of election', 'Parties contested', usercolors,0);	
+			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'Year', 'Year of election', 'Parties contested');	
 			break;
 			
 		case 'seatshare':
 			filepath = filepath+'ae_seatshares/'+state;
-			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'Year', ' Year of election', 'Seat share %', usercolors,0,0);
+			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'Year', ' Year of election', 'Seat share %',0);
 			break;
 			
 		case 'voteshare':
 			filepath = filepath+'ae_voteshares/'+state;
-			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'Year', 'Year of election', 'Vote share %',usercolors,0,0);	
+			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'Year', 'Year of election', 'Vote share %',0);	
 			break;
 		
 		case 'contested_deposit_lost':
 			filepath = filepath+'ae_contested_deposit_losts/'+state;
-			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', state+' '+year, 'Year', 'Year of election', 'Total Candidates',usercolors,0);	
+			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', state+' '+year, 'Year', 'Year of election', 'Total Candidates');	
 			break;
 		
 		case 'women':
 			filepath = filepath+'ae_womens/'+state;
-			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', state+' '+year,'Year', 'Year of election', '% of women winners',usercolors,0,0);
+			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', state+' '+year,'Year', 'Year of election', '% of women winners',0);
 			break;
 	}
-	
-
 }
 
+//Creates AE maps based on the selection box values
+//showAeMapVizualisation('AE', 'Bihar', '1962', 'gender', '' )
 function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
-	var usercolors = getRandomColors(30);
+	var usercolors = d3.scale.category10();
 
 	var root_path = 'assets/elections/'+elect_type+'/'+state+'/';
 
@@ -348,13 +349,13 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 	switch(viz_option) {
 		case 'gender':
 			filter_column_name = 'Sex1';
-			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Constituencies with women winners ',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
+			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Constituencies with women winners ',state+' '+year,'AC_No',filter_column_name,'ac');
 			break;
 					
 
 		case 'vote_share':
 			filter_column_name = 'Vote_percent';
-			createMapsVoteShare(600, 300,topoJsonpath,api_path2, 6, 'Individual party vote share across constituencies',state+' '+year,'AC_No',filter_column_name,'#d62728', 'ac');
+			createMapsRanges(600, 300,topoJsonpath,api_path2, 6, 'Individual party vote share across constituencies',state+' '+year,'AC_No',filter_column_name,'#d62728', 'ac',[10,20,30,40],'%');
 			break;
 			
 		case 'position':
@@ -364,37 +365,37 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 		
 		case 'candidates':
 			filter_column_name = 'N_cand';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Number of candidates contesting across constituencies',state+' '+year,'AC_No',filter_column_name,'#843c39', 'ac',[5,15],'');
+			createMapsRanges(600, 300,topoJsonpath,api_path, 6, 'Number of candidates contesting across constituencies',state+' '+year,'AC_No',filter_column_name,'#843c39', 'ac',[5,15],'');
 					break;
 					
 		case 'Turnout':
 			filter_column_name = 'Turnout';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Turnout across constituencies',state+' '+year,'AC_No',filter_column_name,'#393b79', 'ac',[40,50,60,70],'%');
+			createMapsRanges(600, 300,topoJsonpath,api_path, 6, 'Turnout across constituencies',state+' '+year,'AC_No',filter_column_name,'#393b79', 'ac',[40,50,60,70],'%');
 					break;
 
 		case 'Electors':
 			filter_column_name = 'Electors';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Electors distribution across constituencies',state+' '+year,'AC_No',filter_column_name,'#31a354', 'ac',[100000,150000,200000], '');
+			createMapsRanges(600, 300,topoJsonpath,api_path, 6, 'Electors distribution across constituencies',state+' '+year,'AC_No',filter_column_name,'#31a354', 'ac',[100000,150000,200000], '');
 					break;
 					
 		case 'nota':
 			filter_column_name = 'NOTA_percent';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'NOTA across constituencies',state+' '+year,'AC_No',filter_column_name,'#756bb1', 'ac',[1,3,5],'%');
+			createMapsRanges(600, 300,topoJsonpath,api_path, 6, 'NOTA across constituencies',state+' '+year,'AC_No',filter_column_name,'#756bb1', 'ac',[1,3,5],'%');
 					break;
 					
 		case 'margin_victory':
 			filter_column_name = 'Margin_percent';
-			createMapsTurnout(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',filter_column_name,'#756bb1', 'ac',[5,10,20],'%');
+			createMapsRanges(600, 300,topoJsonpath,api_path, 6, 'Margin of victory across constituencies',state+' '+year,'AC_No',filter_column_name,'#756bb1', 'ac',[5,10,20],'%');
 					break;
 					
 		case 'community':
 			filter_column_name = 'AC_Type';
-			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'General, SC and ST seats (only winners)',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
+			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'General, SC and ST seats (only winners)',state+' '+year,'AC_No',filter_column_name,'ac');
 					break;
 					
 		case 'religion':
 			filter_column_name = 'RELIGION';
-			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Muslim candidates across constituencies',state+' '+year,'AC_No',filter_column_name,usercolors, 'ac');
+			createMapsCategory(600, 300,topoJsonpath,api_path, 6, 'Muslim candidates across constituencies',state+' '+year,'AC_No',filter_column_name, 'ac');
 				break;
 					
 		case 'winners':
@@ -405,8 +406,10 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 	}
 }
 
+//Creates GE charts based on the selection box values
+//showGeChartsVizualisation('GE', 'Bihar', '1962', 'voter_turnout', '' )
 function showGeChartsVizualisation(elect_type, state, year, viz_option,party ) {
-	var usercolors = getRandomColors(10);
+	var usercolors = d3.scale.category10();
 	var filepath = '';
 	
 	
@@ -415,38 +418,40 @@ function showGeChartsVizualisation(elect_type, state, year, viz_option,party ) {
 		
 		case 'voter_turnout':
 			filepath = filepath+'ge_voter_turnouts';
-			createGridLineGraph(600, 300,filepath,0, 'Voter turnout', 'General Election '+year,'Year','Year','Turnout',usercolors,20,0);	
+			createGridLineGraph(600, 300,filepath,0, 'Voter turnout', 'General Election '+year,'Year','Year','Turnout',20);	
 			break;
 			
 		case 'parties_contesting':
 			filepath = filepath+'ge_parties_contests';
-			createGroupedBarGraph(600, 300,filepath,0, 'Number of parties contesting and represented', 'General Election '+year,'Year', 'Year', 'No of Parties', usercolors,0);	
+			createGroupedBarGraph(600, 300,filepath,0, 'Number of parties contesting and represented', 'General Election '+year,'Year', 'Year', 'No of Parties');	
 			break;
 			
 		case 'seatshare':
 			filepath = filepath+'ge_seatshares';
-			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', 'General Election '+year,'Year', 'Year', 'No of Seats', usercolors,0,0);
+			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', 'General Election '+year,'Year', 'Year', 'No of Seats',0);
 			break;
 			
 		case 'voteshare':
 			filepath = filepath+'ge_voteshares';
-			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', 'General Election '+year,'Year', 'Year', 'Percentages',usercolors,0,0);	
+			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', 'General Election '+year,'Year', 'Year', 'Percentages',0);	
 			break;
 		
 		case 'contested_deposit_lost':
 			filepath = filepath+'ge_contested_deposit_losts';
-			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', 'General Election '+year, 'Year', 'Year', 'Total Candidates',usercolors,0);	
+			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', 'General Election '+year, 'Year', 'Year', 'Total Candidates');	
 			break;
 		
 		case 'women':
 			filepath = filepath+'ge_womens';
-			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', 'General Election '+year,'Year', 'Year', 'Percentages',usercolors,0,0);
+			createGridLineGraph(600, 300,filepath,0, 'Women candidates and winners', 'General Election '+year,'Year', 'Year', 'Percentages',0);
 			break;
 	}
 }
 
+//Creates GE maps based on the selection box values
+//showGeMapVizualisation('GE', 'Bihar', '1962', 'voter_turnout', '' )
 function showGeMapVizualisation(elect_type, state, year, viz_option, party) {
-	var usercolors = getRandomColors(30);
+	var usercolors = d3.scale.category10();
 
 	var root_path = 'assets/elections/'+elect_type+'/';
 	
@@ -454,6 +459,8 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party) {
 	
 	var api_path = 'api/ge/elections/'+year;
 	var api_path2 = api_path+'/'+party;
+	
+	//get topojson 	
 	if(year < 1973) {
 		topoJsonpath = root_path+state+'_pre.json';
 		topoMapObj = 'LOKSAB14_I';
@@ -475,168 +482,30 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party) {
 			break;
 
 		case 'turnout':
-			createMapsTurnout(600, 400,topoJsonpath,api_path, 6, 'Regional Distribution of Turnout','General Election '+year,'PC_No','Turnout', '#336600', topoMapObj,[40,50,60,70],'%');			
+			createMapsRanges(600, 400,topoJsonpath,api_path, 6, 'Regional Distribution of Turnout','General Election '+year,'PC_No','Turnout', '#336600', topoMapObj,[40,50,60,70],'%');			
 			break;				
 	}
 }
 
 
-function createLineGraph(width, height,path, gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor) {
-	
-	var margin = {top: 45, right: 65, bottom: 40, left: 55},
-	width  = 800 - margin.left - margin.right,
-	height = 380  - margin.top  - margin.bottom;
-	
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
-	var x = d3.scale.ordinal()                    
-			.rangeRoundBands([0, width], .1);
-
-	var y = d3.scale.linear()
-			.rangeRound([height, 0]);
-
-	var xAxis = d3.svg.axis()
-				.scale(x)
-				.orient("bottom");
-
-	var yAxis = d3.svg.axis()
-				.scale(y)
-				.orient("left");
-
-	var line = d3.svg.line()
-				.interpolate("linear")
-				.x(function (d) { return x(d.label) + x.rangeBand() / 2; })
-				.y(function (d) { return y(d.value); });
-
-	// static color for legends
-	var color = d3.scale.ordinal()
-				.range(usercolor);
-
-	
-	var svg = create_svg(divid, width, height);
- 
-	d3.json(path, function (error, data) {
-
-		var labelVar = xAxisHead;
-		var varNames = d3.keys(data[0]).filter(function (key) { return key !== labelVar;});
-		color.domain(varNames);
-
-		var seriesData = varNames.map(function (name) {
-		  return {
-			name: name,
-			values: data.map(function (d) {
-			  return {name: name, label: d[labelVar], value: +d[name]};
-			})
-		  };
-		});
-
-		x.domain(data.map(function (d) { return d[labelVar]; }));
-		y.domain([0,
-		  
-		  (d3.max(seriesData, function (c) { 
-			return d3.max(c.values, function (d) { return d.value; });
-		  }))+10
-		]);
-
-		svg.append("g")
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis)
-			.append("text")
-			.attr("y", 30)
-			.attr("x", (width/2)-50)
-			.attr("dy", ".71em")
-			.style("text-anchor", "start")
-			.text(col1Head);
-
-		svg.append("g")
-			.attr("class", "y axis")
-			.call(yAxis)
-			.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("x", -((height/2)-50))
-			.attr("y", -50)
-			.attr("dy", ".71em")
-			.style("text-anchor", "end")
-			.text(col2Head);
-				
-		var series = svg.selectAll(".series")
-						.data(seriesData)
-						.enter().append("g")
-						.attr("class", "series");
-	
-		series.append("path")
-			.attr("class", "line")
-			.attr("d", function (d) { return line(d.values); })
-			.style("stroke", function (d) { return color(d.name); })
-			.style("stroke-width", "2px")
-			.style("stroke-dasharray", "5,5")
-			.style("fill", "none")
-
-		series.selectAll(".point")
-			.data(function (d) { return d.values; })
-			.enter().append("circle")
-			.attr("class", "point")
-			.attr("cx", function (d) { return x(d.label) + x.rangeBand()/2; })
-			.attr("cy", function (d) { return y(d.value); })
-			.attr("r", "5px")
-			.style("fill", function (d) { return color(d.name); })
-			.style("stroke", "grey")
-			.style("stroke-width", "1px")
-			.on("mouseover", function (d) { showPopover.call(this, d); })
-			.on("click", function (d) { showPopover.call(this, d); })
-			.on("mouseout",  function (d) { removePopovers(); })
-			
-		// to display the legends on the side
-		var legend = svg.selectAll(".legend")
-			.data(varNames.slice().reverse())
-			.enter().append("g")
-			.attr("class", "legend")
-			.attr("transform", function(d, i) {return "translate(" + i * 100 + ",-25)"; });
-			
-		legend.append("rect")
-			.attr("x", 0)
-			.attr("width", 50)
-			.attr("height", 10)
-			.style("fill", color)
-			.style("stroke", "grey");
-
-		legend.append("text")
-			.attr("x", -10)
-			.attr("y", -5)
-			.attr("dx", ".9em")
-			.style("text-anchor", "start")
-			.style("text-wrap", "normal")
-			.text(function (d) { return d; });
-		  
-		function removePopovers () {
-		  $('.popover').each(function() {
-			$(this).remove();
-		  }); 
-		}
-
-		function showPopover (d) {
-		  $(this).popover({
-			title: d.name,
-			placement: 'auto top',
-			container: 'body',
-			trigger: 'manual',
-			html : true,
-			content: function() { 
-			  return col1Head+": " + d.label + 
-					 "<br/>"+col2Head+": " + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
-		  });
-		  $(this).popover('show')
-		}
-		 d3.select("#download")
-			.on("mouseover", writeDownloadLink);
-	});
-}
-
-
-function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor,yscale) {
+/*Section:1 Charts/Graphs*/
+/*Creates Line graph with grid 
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	path = api path for json data
+	gSeqNo = to differentiate the maps/graphs. if gSeqNo=2, then the div enclosing svg will have id="graph_area2"
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	xAxishead = Value from JSON that is to be mapped for xaxis
+	col1Head = xaxis label
+	col2Head = yaxis label
+	yscale = to spicify starting value for yaxis
+*/
+function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head,yscale) {
 	
 	var margin = {top: 15, right: 15, bottom: 35, left:55};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid, width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -665,10 +534,10 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				.x(function (d) { return x(d.label) + x.rangeBand() / 2; })
 				.y(function (d) { return y(d.value); });
 
-	  // static color for legends DE6035
+	  // create color range
 	var color = d3.scale.category10();
-
 	
+	//get title area size
 	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
 	var title_area = title_dim[0][0].getBBox();
 
@@ -769,6 +638,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.style("font-size", "12px")
 			.text(col2Head);
 			
+		//Create lines and circle point 
 		var series = chart_element.selectAll(".series")
 						.data(seriesData)
 						.enter().append("g")
@@ -816,7 +686,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		chart_element.selectAll('.axis path')
 					.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
 					
-					
+		//get chart area size		
 		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
 		var chart_area = chart_dim[0][0].getBBox();
 	
@@ -866,52 +736,54 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				createlegendBorder(svg)
 				resizeSvg(svg, '.chart_area');
 				
-				d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
+				if(varNames.slice().reverse().length >1) {
+				//Create checkboxes on the sidepanel same as legends
+					d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
 
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-					
-				var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
+								.attr('class','legend_list')
+								.attr('height', height)
+								.append('li')
+								.append('label')
+								.attr('for','All')
+								.text('All')
+								.append("input")
+								.attr("checked", true)
+								.attr("type", "checkbox")
+								.attr("id", "All")
+								.on("change", function (d) {checkboxToggle(this)});
+								
+						
+					var legend1 = d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
+								.attr('class','legend_list')
+								.attr('height', height);
 
-				var keys = legend1.selectAll('li.key')
-							.data(varNames.slice().reverse())
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
-							.text(function(d){  return d; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});
-				
-			  
+					var keys = legend1.selectAll('li.key')
+								.data(varNames.slice().reverse())
+								.enter().append('li')
+								.append('label')
+								.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
+								.text(function(d){  return d; })
+								.append("input")
+								.attr("checked", true)
+								.attr("type", "checkbox")
+								.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+								.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+								.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
+								.on("click", function (d, i) {
+									sidefilterGraph(this);
+								});
+				}
+		//remove popoup  
 		function removePopovers () {
 		  $('.popover').each(function() {
 			$(this).remove();
 		  }); 
 		}
-
+		//Show popup
 		function showPopover (d) {
 		  $(this).popover({
 			title: d.name,
@@ -925,16 +797,28 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		  });
 		  $(this).popover('show')
 		}
+		//bind download svg link to the download button on sidepanel
 		d3.select("#download")
 			.on("mouseover", writeDownloadLink);
 	});
 }
-  
 
-function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor) {
+/*Creates Grouped bar graph 
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	path = api path for json data
+	gSeqNo = to differentiate the maps/graphs. if gSeqNo=2, then the div enclosing svg will have id="graph_area2"
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	xAxishead = Value from JSON that is to be mapped for xaxis
+	col1Head = xaxis label
+	col2Head = yaxis label
+*/
+function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head) {
 	
 	var margin = {top: 15, right: 15, bottom: 35, left:55};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid, width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -1130,13 +1014,14 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 							.on("click", function (d, i) {
 								sidefilterGraph(this);
 							});				
-						
+		//remove popoup 			
 		function removePopovers () {
           $('.popover').each(function() {
             $(this).remove();
           }); 
         }
 
+		//Show popup
         function showPopover (d) {
 			$(this).popover({
 				title: d.name,
@@ -1149,144 +1034,32 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 				});
 			$(this).popover('show')
         }
+		//bind download svg link to the download button on sidepanel
 		d3.select("#download")
 		.on("mouseover", writeDownloadLink);
 	});
 }
-	  
 
-function createBarGraph(width, height, path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head, usercolor) {
-	     
-	var margin = {top: 45, right: 65, bottom: 40, left: 55},
-	width  = 800 - margin.left - margin.right,
-	height = 380  - margin.top  - margin.bottom;
-	
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+/* Section:2 Maps */
+/*Creates Maps based on the given col2Head value and given legend_values range  
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	topoJsonpath = geojson file path for map plotting
+	csvPath = api path for JSON data
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	col1Head = Constituency number (field name) from json data
+	col2Head = field for  which the data to be displayed from json data
+	mappingColumn = common variable that is used to map between json data and geojson data
+	legend_values = values that needs to be in legends eg: [20,30,40,50]
+	legend_unit = unit for legend eg: %
+*/
 
-	var x = d3.scale.ordinal()
-			.rangeRoundBands([0, width], .7);
-
-	var y = d3.scale.linear()
-			.range([height, 0]);
-
-	var color = d3.scale.ordinal()
-				.range(usercolor);
-
-	var xAxis = d3.svg.axis()
-				.scale(x)
-				.orient("bottom");
-
-	var yAxis = d3.svg.axis()
-				.scale(y)
-				.orient("left")
-				.tickFormat(d3.format(".2s"));
-
-	
-	var svg = create_svg(divid,width, height);
-			
-			
-	d3.json(path, function(error, data) {
-		if (error) throw error;
-
-		var ageNames = d3.keys(data[0]).filter(function(key) { return key !== col1Head; });
-		data.forEach(function(d) {
-			d.colvalues = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
-		});
-
-		x.domain(data.map(function(d) { return d[col1Head]; }));
-		y.domain([0, 150]);
-
-		svg.append("g")
-			.attr("class", "x axis")
-			.attr("transform", "translate(0," + height + ")")
-			.call(xAxis)
-			.append("text")
-			.attr("y", 30)
-			.attr("x", (width/2)-50)
-			.attr("dy", ".71em")
-			.style("text-anchor", "start")
-			.text(col1Head);
-
-		svg.append("g")
-			.attr("class", "y axis")
-			.call(yAxis)
-			.append("text")
-			.attr("transform", "rotate(-90)")
-			.attr("x", -((height/2)-50))
-			.attr("y", -50)
-			.attr("dy", ".71em")
-			.style("text-anchor", "end")
-			.text(col2Head);
-          
-		var state = svg.selectAll(".state")
-					.data(data)
-					.enter().append("g")
-					.attr("class", "state")
-					.attr("transform", function(d) { return "translate(" + x(d[col1Head]) + ",0)"; });
-
-		state.selectAll("rect")
-			.data(function(d) { return d.colvalues; })
-			.enter().append("rect")
-			.attr("width", x.rangeBand())
-			.attr("x", function(d) { return x(d.name); })
-			.attr("y", function(d) { return y(d.value); })
-			.attr("height", function(d) { return height - y(d.value); })
-			.style("fill", function(d) { return color(d.name); })
-			.on("mouseover", function (d) { showPopover.call(this,d); })
-			.on("click", function (d) { showPopover.call(this, d); })
-			.on("mouseout",  function (d) { removePopovers(); });
-
-		var legend = svg.selectAll(".legend")
-						.data(ageNames.slice().reverse())
-						.enter().append("g")
-						.attr("class", "legend")
-						.attr("transform", function(d, i) {return "translate(55," + i * 20 + ")"; });
-
-		legend.append("rect")
-			.attr("x", width - 10)
-			.attr("width", -10)
-			.attr("height", -5)
-			.style("fill", color)
-			.style("stroke", "grey");
-
-		legend.append("text")
-			.attr("x", width - 12)
-			.attr("y", -45)
-			.attr("dy", ".35em")
-			.style("text-anchor", "end")
-			.text(function (d) { return d; });
-
-		function removePopovers () {
-          $('.popover').each(function() {
-            $(this).remove();
-          }); 
-        }
-
-		function showPopover (d) {
-			$(this).popover({
-				title: d.name,
-				placement: 'auto top',
-				container: 'body',
-				trigger: 'manual',
-				html : true,
-				content: function() { 
-				return "" + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
-			});
-			$(this).popover('show')
-		}
-		d3.select("#download")
-			.on("mouseover", writeDownloadLink);
-		
-		
-		
-	});
-}
-
-
-function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values, legend_unit) {
+function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values, legend_unit) {
 
 	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid,width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -1297,12 +1070,22 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 	var legend_ranges = getLegendRanges(color_domain,legend_unit)
 	var ext_color_domain = legend_ranges[0];
 	var legend_labels = legend_ranges[1];
-
+//usercolor = '#004E94';
 	var rateById = {};
 	var c = d3.rgb(usercolor);
 	var minimumColor = c.brighter().toString();
+	var new_domain = ''
+	if(usercolor == '#393b79') {
+		//var minimumColor = "#BFD3E6", usercolor = "#88419D";
+		var minimum = 20, maximum = 74;
+		var minimumColor = "#BFD3E6"
+		var new_domain = [minimum,maximum];
+	} else {
+		var new_domain = color_domain;
+	}
+	
 
-	var color = d3.scale.linear().domain(color_domain).range([minimumColor, usercolor]);
+	var color = d3.scale.linear().domain(new_domain).range([minimumColor, usercolor]);
 
 	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
 	
@@ -1466,6 +1249,7 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 						g.call(zoom)*/
 						
 					function getClassNameForTurnout(d) {
+
 						var new_d = '';
 						if(d < 1) {
 							new_d = d*100;
@@ -1477,18 +1261,23 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 						} else if(new_d> ext_color_domain[ext_color_domain.length-1]){
 							return ext_color_domain[ext_color_domain.length-1];
 						} else {
-							return Math.floor(new_d / 10) * 10
+							for(var i=1;i<ext_color_domain.length-1;i++){
+								if((new_d) >= parseInt(ext_color_domain[i]) && new_d <= parseInt(ext_color_domain[i+1])) {
+									return ext_color_domain[i];
+								}
+							}
 						}
 						
 					}
 					
-					
+				//remove popoup 	
 				function removePopovers () {
 				  $('.popover').each(function() {
 					$(this).remove();
 				  }); 
 				}
 
+				//Show popup
 				function showPopover (d) {
 				  $(this).popover({
 					title: d.name,
@@ -1511,6 +1300,7 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 				  $(this).popover('show')
 				}
 				resizeSvg(svg, '.counties');
+				//bind download svg link to the download button on sidepanel
 				d3.select("#download")
 				.on("mouseover", writeDownloadLink);
 			
@@ -1519,225 +1309,23 @@ function createMapsTurnout(width, height,topoJsonpath, csvPath, gSeqNo, mheading
 	
 }
  
- 
-function createMapsVoteShare(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
-	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
-	
-	var svg = create_svg(divid,width, height);
-	createMapTitle(svg, width, height, margin, mheading, sheading);
-	width  = width - margin.left - margin.right,
-	height = height  - margin.top  - margin.bottom;
-	
-	var color_domain = [10,20,30,40];
-	var ext_color_domain = [0,10,20,30,40];
-	var legend_labels = ["<10%", "10-20%", "20-30%", "30-40%", ">40%"];
-	
-	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
-	
-	
-	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
-	var title_area = title_dim[0][0].getBBox();
-
-	var rateById = {};
-	var c = d3.rgb(usercolor);
-	var minimumColor = c.brighter().toString();
-	
-	var color = d3.scale.linear().domain(color_domain).range([minimumColor, usercolor]);
-				
-	$.getJSON(csvPath, function(data) {
-       
-		data.forEach(function(d) { rateById[d[col1Head]] = d; 
-			/*if (legend_labels.indexOf(d[col2Head]) == -1) {
-				legend_labels.push(d[col2Head]);
-			}
-			legend_labels = legend_labels.sort().reverse();*/
-		});
-		
-		d3.json(topoJsonpath, function(error, mdata) {
-	//if (error) throw error;
-
-			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox,width, height);
-			var new_height = height- title_area.y;
-			projection
-			.translate([width / 2, new_height / 2])
-			.center(center_scale[0])
-			.scale(center_scale[1]);
-			svg.append("g")				
-				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
-				.selectAll("path")
-				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-				.enter().append("path")
-				.style ( "fill" , '#D0D0D0')
-				.style("stroke-width","1px")
-				.style("stroke","#fff")
-				.attr("d", path)
-				
-			svg.append("g")				
-				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
-				.attr("class", "counties")
-				.selectAll("path")
-				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-				.enter().append("path")
-				.attr("class", function(d) { 
-					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						return 'class_'+getClassNameForTurnout(rateById[d.properties[mappingColumn]][col2Head]);
-					}
-				})
-				.style("stroke","#ccc")
-				.style("stroke-width","1px")
-				.style ( "fill" , function (d) {
-					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
-							return color(rateById[d.properties[mappingColumn]][col2Head]*100);
-						} else {
-							return color(rateById[d.properties[mappingColumn]][col2Head]);
-						}
-						
-					} else {
-						return empty_area_color;
-					}
-				})
-				.style("opacity", 1)
-				.attr("d", path)
-				.on("mouseover", function (d) { showPopover.call(this, d); })
-				.on("click", function (d) { showPopover.call(this, d); })
-				.on("mouseout",  function (d) { removePopovers(); })
-
-				var	graph_dim = svg.selectAll(".counties").data([true]) ;
-				var graph_area = graph_dim[0][0].getBBox();
-				
-				var ls_w = 20, ls_h = 15;
-				 
-				var legend = svg.append("g")
-					.attr("transform", "translate(0," +(title_area.height ) + ")")
-					.attr("class","legend_grp")
-					.selectAll(".legend")
-					.data(ext_color_domain)
-					.enter().append("g")
-					.attr("class", "legend");
-
-				legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width+30)
-					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-					.attr("width", ls_w)
-					.attr("height", ls_h)
-					.style("fill", function(d){ return color(d); })
-					.style("opacity", 1)
-					.on("click", function (d, i) {
-						var lVisibility = this.style.opacity 
-                        filterGraph(d, lVisibility);
-					});;
-					 
-				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width + 60)
-					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-					.style("font-size","12px")
-					.style("opacity", 1)
-					.text(function(d, i){ return legend_labels[i]; })
-					.on("click", function (d, i) {
-                        var lVisibility = this.style.opacity 
-						filterGraph(d, lVisibility);
-					});
-				createlegendBorder(svg);
-				d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-					
-				var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
-
-				var keys = legend1.selectAll('li.key')
-							.data(ext_color_domain)
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+d;})
-							.text(function(d, i){  return legend_labels[i]; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d;})
-							.attr("name", function(d) { return 'class_'+d;})
-							.attr("id", function(d) { return 'class_'+d;})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});
-							
-				function getClassNameForTurnout(d) {
-					var new_d = '';
-					if(d < 1) {
-						new_d = d*100;
-					} else {
-						new_d = d;
-					}
-					if(new_d< ext_color_domain[1]){
-						return ext_color_domain[0];
-					} else if(new_d> ext_color_domain[ext_color_domain.length-1]){
-						return ext_color_domain[ext_color_domain.length-1];
-					} else {
-						return Math.floor(new_d / 10) * 10
-					}
-					
-				}
-					
-				resizeSvg(svg, '.counties');	
-				d3.select("#download")
-				.on("mouseover", writeDownloadLink);
-
-				function removePopovers () {
-				  $('.popover').each(function() {
-					$(this).remove();
-				  }); 
-				}
-				function showPopover (d) {
-				  $(this).popover({
-					title: d.name,
-					placement: 'auto top',
-					container: 'body',
-					trigger: 'manual',
-					html : true,
-					content: function() { 
-					var html = '';
-							for(var key in rateById[d.properties[mappingColumn]]){
-								if(key !== '' && consDetailsArr.indexOf(key) > -1) 
-								{
-									var key1 = key.replace('_', ' ')
-									html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-								}					
-							}
-					  return html;
-					}
-				  });
-				  $(this).popover('show')
-				}
-		
-		});
-	});
-		
-}
-
+/* Section:2 Maps */
+/*Creates Maps for the winners   
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	topoJsonpath = geojson file path for map plotting
+	csvPath = api path for JSON data
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	col1Head = Constituency number (field name) from json data
+	col2Head = field for  which the data to be displayed from json data
+	mappingColumn = common variable that is used to map between json data and geojson data
+*/
 function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
 	
 	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid,width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -1943,12 +1531,14 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 							sidefilterGraph(this);
 						});
 			
+			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
 				$(this).remove();
 			  }); 
 			}
 
+			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
 				title: d.name,
@@ -1998,6 +1588,8 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 			  $(this).popover('show')
 			}
 			resizeSvg(svg, '.counties');
+			
+			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
 			.on("mouseover", writeDownloadLink);
 		});
@@ -2006,10 +1598,23 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 	
 }
 
-function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
+
+/*Creates Category maps 
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	topoJsonpath = geojson file path for map plotting
+	csvPath = api path for JSON data
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	col1Head = Constituency number (field name) from json data
+	col2Head = field for  which the data to be displayed from json data
+	mappingColumn = common variable that is used to map between json data and geojson data
+*/
+function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, mappingColumn) {
 	
 	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid,width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -2069,7 +1674,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.enter().append("path")
 				.attr("class", function(d) { 
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						return 'class_'+rateById[d.properties[mappingColumn]][col2Head];
+						return 'class_'+getCleanedClassname(rateById[d.properties[mappingColumn]][col2Head]);
 					}
 				})
 				.style("stroke","#ccc")
@@ -2107,7 +1712,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.attr("class", "legend");
 
 			legend.append("rect")
-				.attr("class", function(d) { return 'classleg_'+d;})
+				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 				.attr("x", graph_area.x + graph_area.width+30)
 				.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
 				.attr("width", ls_w)
@@ -2122,10 +1727,10 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.style("opacity", 1)
 				.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d, lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
                    });
 			legend.append("text")
-				.attr("class", function(d) { return 'classleg_'+d;})
+				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 				.attr("x", graph_area.x + graph_area.width + 60)
 				.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
 				.style("font-size","12px")
@@ -2133,7 +1738,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.text(function(d, i){ return legend_labels[i]; })
 				.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d, lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
 				});
 				
 			createlegendBorder(svg);
@@ -2163,24 +1768,26 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 							.data(legend_labels)
 							.enter().append('li')
 							.append('label')
-							.attr('for',function(d) { return 'class_'+d;})
+							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
 							.text(function(d, i){  return legend_labels[i]; })
 							.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d;})
-							.attr("name", function(d) { return 'class_'+d;})
-							.attr("id", function(d) { return 'class_'+d;})
+							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
 							.on("click", function (d, i) {
 								sidefilterGraph(this);
 							});
 			
+			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
 				$(this).remove();
 			  }); 
 			}
 
+			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
 				title: d.name,
@@ -2205,16 +1812,30 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 			
 			
 			resizeSvg(svg, '.counties');
+			
+			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
 			.on("mouseover", writeDownloadLink);
 		});	
 	});
 }
 
-function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values) {
+/*Creates Cadidate position plot
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	topoJsonpath = geojson file path for map plotting
+	csvPath = api path for JSON data
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	col1Head = Constituency number (field name) from json data
+	col2Head = field for  which the data to be displayed from json data
+	mappingColumn = common variable that is used to map between json data and geojson data
+*/
+function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn) {
 	
 	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = prepare_headings(gSeqNo,mheading,sheading);
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
 	var svg = create_svg(divid,width, height);
 	createMapTitle(svg, width, height, margin, mheading, sheading);
 	
@@ -2373,12 +1994,14 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 				}
 				
 			}
+			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
 				$(this).remove();
 			  }); 
 			}
 
+			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
 				title: d.name,
@@ -2401,18 +2024,10 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 			  $(this).popover('show')
 			}
 			resizeSvg(svg, '.counties');
+			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
 			.on("mouseover", writeDownloadLink);
 		});
 	});
 
-}
-
-function getCleanedClassname(value) {
-	if(isNaN(value)) {
-		return value.replace(/\W/g, "0");
-	} else {
-		return value;
-	}
-	
 }
