@@ -15,7 +15,8 @@ var root_path = 'assets/elections/';
 //List of items to display in popup
 var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","NOTA_percent","Turnout","Margin_percent","Runner","Runner_party","Runner_sex"];
 
-
+//Substitution for the field name from DB for popup
+var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA %","Turnout":"Turnout %","Margin_percent":"Margin %","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
 
 var empty_area_color = "#D0D0D0";
 var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
@@ -29,6 +30,7 @@ $.getJSON("api/party/colors", function(json){
 	});
 
 });
+
 /*** follwoing three functions for embedd responsive display **/
 //To create div with specific id for SVG maps/graphs drawing area
 function create_draw_area(gSeqNo,mheading,sheading) {
@@ -164,6 +166,31 @@ function getCleanedClassname(value) {
 	}
 	
 }
+
+//binds constituency data to popup
+function getPopupDetails(popupdata) {
+	if(popupdata != undefined) {
+		var keys = Object.keys(popupdata),
+		i, len = keys.length;
+
+		keys.sort();
+		var html = '';
+		//for(var key in popupdata){
+		for (i = 0; i < len; i++) {
+			if(keys[i] !== '' && consDetailsArr.indexOf(keys[i]) > -1) 
+			{
+				if((keys[i] == 'Turnout' || keys[i] == 'Margin_percent' || keys[i] == 'NOTA_percent') && popupdata[keys[i]] < 1) {
+					html+= renamedPopupFields[0][keys[i]] +': '+(parseFloat(popupdata[keys[i]])*100).toFixed(2)+'<br>';
+				} else {
+					//var key1 = key.replace('_', ' ')
+					html+= renamedPopupFields[0][keys[i]] +': '+popupdata[keys[i]]+'<br>';
+				}
+			}					
+		}
+		return html;
+	}
+}
+
 
 //create link for downloading the SVG area
 function writeDownloadLink(){
@@ -685,15 +712,15 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				
 		chart_element.selectAll('.axis path')
 					.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
+			if(varNames.slice().reverse().length >1) {
+						//get chart area size		
+				var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
+				var chart_area = chart_dim[0][0].getBBox();
 					
-		//get chart area size		
-		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
-		var chart_area = chart_dim[0][0].getBBox();
-	
-		// to display the legends on the side
-				var ls_w = 20, ls_h = 15;
-							
-		var legend = svg.append("g")
+						// to display the legends on the side
+								var ls_w = 20, ls_h = 15;
+											
+							var legend = svg.append("g")
 						.attr("class","legend_grp")
 						.attr("transform", "translate(0," +(title_area.height ) + ")")
 						
@@ -702,7 +729,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 						.enter().append("g")
 						.attr("class", "legend");
 						//.attr("transform", function(d, i) {return "translate(" + i * 110 + ",-25)"; })
-		  legend.append("rect")
+				legend.append("rect")
 					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
 					.attr("x", chart_area.width+10)
 					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
@@ -736,7 +763,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				createlegendBorder(svg)
 				resizeSvg(svg, '.chart_area');
 				
-				if(varNames.slice().reverse().length >1) {
+				
 				//Create checkboxes on the sidepanel same as legends
 					d3.select("#filtervalued")
 								.append('div')
@@ -920,7 +947,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 		  bars.enter().append("rect")
 			.attr("class", "bar")
 			.attr("class", function(d) { 
-					return 'class_'+d.name.replace(/ /g,"_");
+					return 'class_'+getCleanedClassname(d.name);
 				})
 			
 			.attr("y", y(0))
@@ -936,84 +963,85 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			.attr("height", function(d) { return height - y(d.value); }) // flip the height, because y's domain is
 			.style("fill", function(d) { return color(d.name); })
 					
-
-		var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
-		var chart_area = chart_dim[0][0].getBBox();
-		var ls_w = 20, ls_h = 15;
-		//console.log(chart_area);
-		var legend = svg.append("g")
-						.attr("class","legend_grp")
-						.attr("transform", "translate(0," +(title_area.height ) + ")")
-						.selectAll(".legend")
-						.data(ageNames.slice().reverse())
-						.enter().append("g")
-						.attr("class", "legend");
-
-		  legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-					.attr("x", chart_area.width+10)
-					.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-					.attr("width", ls_w)
-					.attr("height", ls_h)
-					.style("fill",color)
-					.style("opacity", 1)
-					.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-					});
-					 
-				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-					.attr("x", chart_area.width+40)
-					.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-					.style("font-size","12px")
-					.style("opacity", 1)
-					.text(function (d) { return d; })
-					.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-					});
-				createlegendBorder(svg)
-				resizeSvg(svg, '.chart_area');	
-
-				d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-					
-				var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
-
-				var keys = legend1.selectAll('li.key')
+		if(ageNames.slice().reverse().length >1) {
+			var	chart_dim = svg.selectAll(".chart_area").data([true]) ;
+			var chart_area = chart_dim[0][0].getBBox();
+			var ls_w = 20, ls_h = 15;
+			//console.log(chart_area);
+			var legend = svg.append("g")
+							.attr("class","legend_grp")
+							.attr("transform", "translate(0," +(title_area.height ) + ")")
+							.selectAll(".legend")
 							.data(ageNames.slice().reverse())
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
-							.text(function(d){  return d; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});				
+							.enter().append("g")
+							.attr("class", "legend");
+
+			legend.append("rect")
+				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+				.attr("x", chart_area.width+10)
+				.attr("y", function(d, i){ return (chart_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+				.attr("width", ls_w)
+				.attr("height", ls_h)
+				.style("fill",color)
+				.style("opacity", 1)
+				.on("click", function (d, i) {
+				  var lVisibility = this.style.opacity 
+				  filterGraph(getCleanedClassname(d), lVisibility);
+				});
+				 
+			legend.append("text")
+				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+				.attr("x", chart_area.width+40)
+				.attr("y", function(d, i){ return (chart_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+				.style("font-size","12px")
+				.style("opacity", 1)
+				.text(function (d) { return d; })
+				.on("click", function (d, i) {
+				  var lVisibility = this.style.opacity 
+				  filterGraph(getCleanedClassname(d), lVisibility);
+				});
+			createlegendBorder(svg)
+			resizeSvg(svg, '.chart_area');	
+
+			d3.select("#filtervalued")
+						.append('div')
+						.append('ul')
+
+						.attr('class','legend_list')
+						.attr('height', height)
+						.append('li')
+						.append('label')
+						.attr('for','All')
+						.text('All')
+						.append("input")
+						.attr("checked", true)
+						.attr("type", "checkbox")
+						.attr("id", "All")
+						.on("change", function (d) {checkboxToggle(this)});
+						
+				
+			var legend1 = d3.select("#filtervalued")
+						.append('div')
+						.append('ul')
+						.attr('class','legend_list')
+						.attr('height', height);
+
+			var keys = legend1.selectAll('li.key')
+						.data(ageNames.slice().reverse())
+						.enter().append('li')
+						.append('label')
+						.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
+						.text(function(d){  return d; })
+						.append("input")
+						.attr("checked", true)
+						.attr("type", "checkbox")
+						.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+						.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+						.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
+						.on("click", function (d, i) {
+							sidefilterGraph(this);
+						});	
+		}
 		//remove popoup 			
 		function removePopovers () {
           $('.popover').each(function() {
@@ -1109,51 +1137,49 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 			.center(center_scale[0])
 			.scale(center_scale[1]);
 
-
-				svg.append("g")				
-				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
-				.selectAll("path")
-				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-				.enter().append("path")
-				.style ( "fill" , '#D0D0D0')
-				.style("stroke-width","1px")
-				.style("stroke","#fff")
-				.attr("d", path)
+			svg.append("g")				
+			.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
+			.selectAll("path")
+			.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
+			.enter().append("path")
+			.style ( "fill" , '#D0D0D0')
+			.style("stroke-width","1px")
+			.style("stroke","#fff")
+			.attr("d", path)
+		
+			svg.append("g")				
+			.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
+			.attr("class", "counties")
 			
-				svg.append("g")				
-				.attr("transform", "translate(" + margin.left + "," +(title_area.height + 10) + ")")
-				.attr("class", "counties")
-				
-				.selectAll("path")
-				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-				.enter().append("path")
-				.attr("class", function(d) { 
-					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						return 'class_'+getClassNameForTurnout(rateById[d.properties[mappingColumn]][col2Head]);
-					}
-				})
-				.style ( "fill" , function (d) {
-					if(rateById[d.properties[mappingColumn]] !== undefined) {
-						if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
-							return color(rateById[d.properties[mappingColumn]][col2Head]*100);
-						} else {
-							return color(rateById[d.properties[mappingColumn]][col2Head]);
-						}
-						
+			.selectAll("path")
+			.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
+			.enter().append("path")
+			.attr("class", function(d) { 
+				if(rateById[d.properties[mappingColumn]] !== undefined) {
+					return 'class_'+getClassNameForTurnout(rateById[d.properties[mappingColumn]][col2Head]);
+				}
+			})
+			.style ( "fill" , function (d) {
+				if(rateById[d.properties[mappingColumn]] !== undefined) {
+					if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
+						return color(rateById[d.properties[mappingColumn]][col2Head]*100);
 					} else {
-						return empty_area_color;
+						return color(rateById[d.properties[mappingColumn]][col2Head]);
 					}
-				})
-				.style("stroke","#ccc")
-				.style("stroke-width","1px")
-				.style("opacity", 1)
-				.attr("d", path)			
-				.on("mouseover", function (d) { showPopover.call(this,d); })
-				.on("click", function (d) { showPopover.call(this, d); })
-				.on("mouseout",  function (d) { removePopovers(); })
-				
-				
-								
+					
+				} else {
+					return empty_area_color;
+				}
+			})
+			.style("stroke","#ccc")
+			.style("stroke-width","1px")
+			.style("opacity", 1)
+			.attr("d", path)			
+			.on("mouseover", function (d) { showPopover.call(this,d); })
+			.on("click", function (d) { showPopover.call(this, d); })
+			.on("mouseout",  function (d) { removePopovers(); })
+						
+			if(ext_color_domain.length > 0){				
 				var	graph_dim = svg.selectAll(".counties").data([true]) ;
 				var graph_area = graph_dim[0][0].getBBox();
 				
@@ -1247,28 +1273,29 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 						});
 
 						g.call(zoom)*/
-						
-					function getClassNameForTurnout(d) {
-
-						var new_d = '';
-						if(d < 1) {
-							new_d = d*100;
-						} else {
-							new_d = d;
-						}
-						if(new_d< ext_color_domain[1]){
-							return ext_color_domain[0];
-						} else if(new_d> ext_color_domain[ext_color_domain.length-1]){
-							return ext_color_domain[ext_color_domain.length-1];
-						} else {
-							for(var i=1;i<ext_color_domain.length-1;i++){
-								if((new_d) >= parseInt(ext_color_domain[i]) && new_d <= parseInt(ext_color_domain[i+1])) {
-									return ext_color_domain[i];
-								}
+				resizeSvg(svg, '.counties');
+			}	
+				function getClassNameForTurnout(d) {
+					//d = 0.0556; 0,1,3,5           <1
+					var new_d = '';
+					if(d < 1) {
+						new_d = d*100;
+					} else {
+						new_d = d;
+					}
+					if(new_d< ext_color_domain[1]){
+						return ext_color_domain[0];
+					} else if(new_d> ext_color_domain[ext_color_domain.length-1]){
+						return ext_color_domain[ext_color_domain.length-1];
+					} else {
+						for(var i=1;i<ext_color_domain.length-1;i++){
+							if((new_d) >= parseInt(ext_color_domain[i]) && new_d <= parseInt(ext_color_domain[i+1])) {
+								return ext_color_domain[i];
 							}
 						}
-						
 					}
+					
+				}
 					
 				//remove popoup 	
 				function removePopovers () {
@@ -1286,20 +1313,12 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					trigger: 'manual',
 					html : true,
 					content: function() { 
-					var html = '';
-							for(var key in rateById[d.properties[mappingColumn]]){
-								if(key !== '' && consDetailsArr.indexOf(key) > -1) 
-								{
-									var key1 = key.replace('_', ' ')
-									html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-								}					
-							}
-					  return html;
+						return getPopupDetails(rateById[d.properties[mappingColumn]]);
 					}
 				  });
 				  $(this).popover('show')
 				}
-				resizeSvg(svg, '.counties');
+				
 				//bind download svg link to the download button on sidepanel
 				d3.select("#download")
 				.on("mouseover", writeDownloadLink);
@@ -1434,103 +1453,105 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })		
 			
-			var	graph_dim = svg.selectAll(".counties").data([true]) ;
-			var graph_area = graph_dim[0][0].getBBox();
-			
-			var ls_w = 20, ls_h = 15;
-			 
-			var legend = svg.append("g")
-				.attr("transform", "translate(0," +(title_area.height ) + ")")
-				.attr("class","legend_grp")
-				.selectAll(".legend")
-				.data(legend_labels)
-				.enter().append("g")
-				.attr("class", "legend");
-
-			legend.append("rect")
-				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-				.attr("x", graph_area.x + graph_area.width+30)
-				.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i);})
-				.attr("width", ls_w)
-				.attr("height", ls_h)
-				.style("fill", function(d, i) { 
-						if(legend_labels.indexOf(d) == -1) {
-							return color('Others');
-						} else {
-							if(color_codes.get(d)) {
-								return color_codes.get(d);
-							} else {
-								return color(d);
-							}
-						}
-				})
-				.style("opacity", 1)
-				.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-                   });
-				 
-			 
-			legend.append("text")
-				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-				.attr("x", graph_area.x + graph_area.width + 60)
-				.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-				.style("font-size","12px")
-				.style("opacity", 1)
-				.text(function(d, i){ return legend_labels[i]+' ('+count_labels[legend_labels[i]]+')'; })
-				.on("click", function (d, i) {
-                     var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-					});
+				if(legend_labels.length > 0) {
+					var	graph_dim = svg.selectAll(".counties").data([true]) ;
+					var graph_area = graph_dim[0][0].getBBox();
 					
-				/*legend.selectAll('.classleg_Others')
-				.on("mouseover", function(i){return tooltip.style("visibility", "visible");})
-				.on("mousemove", function(){return tooltip.style("top",
-					(d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
-				.on("mouseout", function(){return tooltip.style("visibility", "hidden");});*/
-				
-			createlegendBorder(svg);
-			
-			
-			d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-					
-			var legend1 = d3.select("#filtervalued")
-						.append('div')
-						.append('ul')
-						.attr('class','legend_list')
-						.attr('height', height);
-
-			var keys = legend1.selectAll('li.key')
+					var ls_w = 20, ls_h = 15;
+					 
+					var legend = svg.append("g")
+						.attr("transform", "translate(0," +(title_area.height ) + ")")
+						.attr("class","legend_grp")
+						.selectAll(".legend")
 						.data(legend_labels)
-						.enter().append('li')
-						.append('label')
-						.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
-						.text(function(d, i){  return legend_labels[i]; })
-						.append("input")
-						.attr("checked", true)
-						.attr("type", "checkbox")
-						.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
-						.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
-						.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
+						.enter().append("g")
+						.attr("class", "legend");
+
+					legend.append("rect")
+						.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+						.attr("x", graph_area.x + graph_area.width+30)
+						.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i);})
+						.attr("width", ls_w)
+						.attr("height", ls_h)
+						.style("fill", function(d, i) { 
+								if(legend_labels.indexOf(d) == -1) {
+									return color('Others');
+								} else {
+									if(color_codes.get(d)) {
+										return color_codes.get(d);
+									} else {
+										return color(d);
+									}
+								}
+						})
+						.style("opacity", 1)
 						.on("click", function (d, i) {
-							sidefilterGraph(this);
-						});
-			
+							  var lVisibility = this.style.opacity 
+							  filterGraph(getCleanedClassname(d), lVisibility);
+						   });
+						 
+					 
+					legend.append("text")
+						.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+						.attr("x", graph_area.x + graph_area.width + 60)
+						.attr("y", function(d, i){ return (title_area.y + title_area.height + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+						.style("font-size","12px")
+						.style("opacity", 1)
+						.text(function(d, i){ return legend_labels[i]+' ('+count_labels[legend_labels[i]]+')'; })
+						.on("click", function (d, i) {
+							 var lVisibility = this.style.opacity 
+							  filterGraph(getCleanedClassname(d), lVisibility);
+							});
+							
+						/*legend.selectAll('.classleg_Others')
+						.on("mouseover", function(i){return tooltip.style("visibility", "visible");})
+						.on("mousemove", function(){return tooltip.style("top",
+							(d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");})
+						.on("mouseout", function(){return tooltip.style("visibility", "hidden");});*/
+						
+					createlegendBorder(svg);
+					
+					
+					d3.select("#filtervalued")
+									.append('div')
+									.append('ul')
+
+									.attr('class','legend_list')
+									.attr('height', height)
+									.append('li')
+									.append('label')
+									.attr('for','All')
+									.text('All')
+									.append("input")
+									.attr("checked", true)
+									.attr("type", "checkbox")
+									.attr("id", "All")
+									.on("change", function (d) {checkboxToggle(this)});
+									
+							
+					var legend1 = d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
+								.attr('class','legend_list')
+								.attr('height', height);
+
+					var keys = legend1.selectAll('li.key')
+								.data(legend_labels)
+								.enter().append('li')
+								.append('label')
+								.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
+								.text(function(d, i){  return legend_labels[i]; })
+								.append("input")
+								.attr("checked", true)
+								.attr("type", "checkbox")
+								.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
+								.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+								.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
+								.on("click", function (d, i) {
+									sidefilterGraph(this);
+								});
+					resizeSvg(svg, '.counties');
+				}
 			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
@@ -1547,15 +1568,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				trigger: 'manual',
 				html : true,
 				content: function() { 
-				var html = '';
-						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '' && consDetailsArr.indexOf(key) > -1)
-							{
-								var key1 = key.replace('_', ' ')
-								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-							}					
-						}
-				  return html;
+					return getPopupDetails(rateById[d.properties[mappingColumn]]);
 				}
 			  });
 			  $(this).popover('show')
@@ -1574,20 +1587,11 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				trigger: 'manual',
 				html : true,
 				content: function() { 
-				var html = '';
-						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '' && consDetailsArr.indexOf(key) > -1)
-							{
-								var key1 = key.replace('_', ' ')
-								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-							}					
-						}
-				  return html;
+					return getPopupDetails(rateById[d.properties[mappingColumn]]);
 				}
 			  });
 			  $(this).popover('show')
 			}
-			resizeSvg(svg, '.counties');
 			
 			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
@@ -1697,72 +1701,72 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })
 
+			if(legend_labels.length > 0) {
+				var	graph_dim = svg.selectAll(".counties").data([true]) ;
+				var graph_area = graph_dim[0][0].getBBox();
 				
-			var	graph_dim = svg.selectAll(".counties").data([true]) ;
-			var graph_area = graph_dim[0][0].getBBox();
-			
-			var ls_w = 20, ls_h = 15;
-			 
-			var legend = svg.append("g")
-				.attr("transform", "translate(0," +(title_area.height ) + ")")
-				.attr("class","legend_grp")
-				.selectAll(".legend")
-				.data(legend_labels)
-				.enter().append("g")
-				.attr("class", "legend");
+				var ls_w = 20, ls_h = 15;
+				 
+				var legend = svg.append("g")
+					.attr("transform", "translate(0," +(title_area.height ) + ")")
+					.attr("class","legend_grp")
+					.selectAll(".legend")
+					.data(legend_labels)
+					.enter().append("g")
+					.attr("class", "legend");
 
-			legend.append("rect")
-				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-				.attr("x", graph_area.x + graph_area.width+30)
-				.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-				.attr("width", ls_w)
-				.attr("height", ls_h)
-				.style("fill", function(d, i) { 
-						if(color_code_legends[0][d]) {
-							return color_code_legends[0][d];
-						} else {
-							return color(d);
-						}
-				})
-				.style("opacity", 1)
-				.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-                   });
-			legend.append("text")
-				.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-				.attr("x", graph_area.x + graph_area.width + 60)
-				.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-				.style("font-size","12px")
-				.style("opacity", 1)
-				.text(function(d, i){ return legend_labels[i]; })
-				.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(getCleanedClassname(d), lVisibility);
-				});
-				
-			createlegendBorder(svg);
-			d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
+				legend.append("rect")
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+					.attr("x", graph_area.x + graph_area.width+30)
+					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill", function(d, i) { 
+							if(color_code_legends[0][d]) {
+								return color_code_legends[0][d];
+							} else {
+								return color(d);
+							}
+					})
+					.style("opacity", 1)
+					.on("click", function (d, i) {
+						  var lVisibility = this.style.opacity 
+						  filterGraph(getCleanedClassname(d), lVisibility);
+					   });
+				legend.append("text")
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+					.attr("x", graph_area.x + graph_area.width + 60)
+					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.style("opacity", 1)
+					.text(function(d, i){ return legend_labels[i]; })
+					.on("click", function (d, i) {
+						  var lVisibility = this.style.opacity 
+						  filterGraph(getCleanedClassname(d), lVisibility);
+					});
+					
+				createlegendBorder(svg);
+				d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
 
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-				
-			var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
+								.attr('class','legend_list')
+								.attr('height', height)
+								.append('li')
+								.append('label')
+								.attr('for','All')
+								.text('All')
+								.append("input")
+								.attr("checked", true)
+								.attr("type", "checkbox")
+								.attr("id", "All")
+								.on("change", function (d) {checkboxToggle(this)});
+					
+				var legend1 = d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
+								.attr('class','legend_list')
+								.attr('height', height);
 
 				var keys = legend1.selectAll('li.key')
 							.data(legend_labels)
@@ -1779,7 +1783,8 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 							.on("click", function (d, i) {
 								sidefilterGraph(this);
 							});
-			
+				resizeSvg(svg, '.counties');
+			}
 			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
@@ -1796,23 +1801,12 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				trigger: 'manual',
 				html : true,
 				content: function() { 
-				var html = '';
-						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '' && consDetailsArr.indexOf(key) > -1) 
-							{
-								var key1 = key.replace('_', ' ')
-								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-							}					
-						}
-				  return html;
+					return getPopupDetails(rateById[d.properties[mappingColumn]]);
 				}
 			  });
 			  $(this).popover('show')
 			}
-			
-			
-			resizeSvg(svg, '.counties');
-			
+
 			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
 			.on("mouseover", writeDownloadLink);
@@ -1906,85 +1900,86 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 				.on("mouseover", function (d) { showPopover.call(this, d); })
 				.on("click", function (d) { showPopover.call(this, d); })
 				.on("mouseout",  function (d) { removePopovers(); })
-
-			var	graph_dim = svg.selectAll(".counties").data([true]) ;
-			var graph_area = graph_dim[0][0].getBBox();
-			
-			var ls_w = 20, ls_h = 15;
-			 
-			var legend = svg.append("g")
-				.attr("transform", "translate(0," +(title_area.height ) + ")")
-				.attr("class","legend_grp")
-				.selectAll(".legend")
-				.data(ext_color_domain)
-				.enter().append("g")
-				.attr("class", "legend");
-
-			legend.append("rect")
-				.attr("class", function(d) { return 'classleg_'+d;})
-				.attr("x", graph_area.x + graph_area.width+30)
-				.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-				.attr("width", ls_w)
-				.attr("height", ls_h)
-				.style("fill", function(d, i) { return color(d); })
-				.style("opacity", 1)
-				.on("click", function (d, i) {
-				  var lVisibility = this.style.opacity 
-				  filterGraph(d, lVisibility);
-				});
+			if(ext_color_domain.length > 0) {
+				var	graph_dim = svg.selectAll(".counties").data([true]) ;
+				var graph_area = graph_dim[0][0].getBBox();
+				
+				var ls_w = 20, ls_h = 15;
 				 
-			legend.append("text")
-				.attr("class", function(d) { return 'classleg_'+d;})
-				.attr("x", graph_area.x + graph_area.width + 60)
-				.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-				.style("font-size","12px")
-				.style('opacity',1)
-				.text(function(d, i){ return legend_labels[i]; })
-				.on("click", function (d, i) {
-                      var lVisibility = this.style.opacity 
-                      filterGraph(d, lVisibility);
+				var legend = svg.append("g")
+					.attr("transform", "translate(0," +(title_area.height ) + ")")
+					.attr("class","legend_grp")
+					.selectAll(".legend")
+					.data(ext_color_domain)
+					.enter().append("g")
+					.attr("class", "legend");
+
+				legend.append("rect")
+					.attr("class", function(d) { return 'classleg_'+d;})
+					.attr("x", graph_area.x + graph_area.width+30)
+					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
+					.attr("width", ls_w)
+					.attr("height", ls_h)
+					.style("fill", function(d, i) { return color(d); })
+					.style("opacity", 1)
+					.on("click", function (d, i) {
+					  var lVisibility = this.style.opacity 
+					  filterGraph(d, lVisibility);
 					});
-					
-			createlegendBorder(svg)
-			d3.select("#filtervalued")
+					 
+				legend.append("text")
+					.attr("class", function(d) { return 'classleg_'+d;})
+					.attr("x", graph_area.x + graph_area.width + 60)
+					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
+					.style("font-size","12px")
+					.style('opacity',1)
+					.text(function(d, i){ return legend_labels[i]; })
+					.on("click", function (d, i) {
+						  var lVisibility = this.style.opacity 
+						  filterGraph(d, lVisibility);
+						});
+						
+				createlegendBorder(svg)
+				d3.select("#filtervalued")
+								.append('div')
+								.append('ul')
+
+								.attr('class','legend_list')
+								.attr('height', height)
+								.append('li')
+								.append('label')
+								.attr('for','All')
+								.text('All')
+								.append("input")
+								.attr("checked", true)
+								.attr("type", "checkbox")
+								.attr("id", "All")
+								.on("change", function (d) {checkboxToggle(this)});
+								
+						
+				var legend1 = d3.select("#filtervalued")
 							.append('div')
 							.append('ul')
-
 							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
+							.attr('height', height);
+
+				var keys = legend1.selectAll('li.key')
+							.data(ext_color_domain)
+							.enter().append('li')
 							.append('label')
-							.attr('for','All')
-							.text('All')
+							.attr('for',function(d) { return 'class_'+d;})
+							.text(function(d, i){  return legend_labels[i]; })
 							.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-					
-			var legend1 = d3.select("#filtervalued")
-						.append('div')
-						.append('ul')
-						.attr('class','legend_list')
-						.attr('height', height);
-
-			var keys = legend1.selectAll('li.key')
-						.data(ext_color_domain)
-						.enter().append('li')
-						.append('label')
-						.attr('for',function(d) { return 'class_'+d;})
-						.text(function(d, i){  return legend_labels[i]; })
-						.append("input")
-						.attr("checked", true)
-						.attr("type", "checkbox")
-						.attr("value", function(d) { return 'class_'+d;})
-						.attr("name", function(d) { return 'class_'+d;})
-						.attr("id", function(d) { return 'class_'+d;})
-						.on("click", function (d, i) {
-							sidefilterGraph(this);
-						});
-
+							.attr("value", function(d) { return 'class_'+d;})
+							.attr("name", function(d) { return 'class_'+d;})
+							.attr("id", function(d) { return 'class_'+d;})
+							.on("click", function (d, i) {
+								sidefilterGraph(this);
+							});
+				resizeSvg(svg, '.counties');
+			}
 			function getClassNameForTurnout(d) {
 				var new_d = d;
 				if(new_d> ext_color_domain[ext_color_domain.length-1]){
@@ -2010,20 +2005,11 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 				trigger: 'manual',
 				html : true,
 				content: function() { 
-				var html = '';
-						for(var key in rateById[d.properties[mappingColumn]]){
-							if(key !== '' && consDetailsArr.indexOf(key) > -1) 
-							{
-								var key1 = key.replace('_', ' ')
-								html+= key1 +': '+rateById[d.properties[mappingColumn]][key]+'<br>';
-							}					
-						}
-				  return html;
+					return getPopupDetails(rateById[d.properties[mappingColumn]]);
 				}
 			  });
 			  $(this).popover('show')
 			}
-			resizeSvg(svg, '.counties');
 			//bind download svg link to the download button on sidepanel
 			d3.select("#download")
 			.on("mouseover", writeDownloadLink);
