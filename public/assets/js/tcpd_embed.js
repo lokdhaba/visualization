@@ -8,7 +8,7 @@ var projection = d3.geo.mercator().scale(1);
 var path = d3.geo.path().projection(projection);
 
 //TCPD name in title
-var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Centre for Political Data, Ashoka University';
+var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Center for Political Data, Ashoka University';
 
 var root_path = 'assets/elections/';
 
@@ -16,7 +16,7 @@ var root_path = 'assets/elections/';
 var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","NOTA_percent","Turnout","Margin_percent","Vote_percent","Runner","Runner_party","Runner_sex"];
 
 //Substitution for the field name from DB for popup
-var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA","Turnout":"Turnout","Margin_percent":"Margin","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
+var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA %","Turnout":"Turnout %","Margin_percent":"Margin %","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
 
 var empty_area_color = "#D0D0D0";
 var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
@@ -191,7 +191,8 @@ function getPopupDetails(popupdata) {
 			html+= '<b>Seat</b>: '+ popupdata['AC_Name'] + ' ('+popupdata['AC_Type']+')<br>';
 		}
 		if(popupdata['Turnout']) {
-			html+= '<b>Turnout</b>: '+ ((popupdata['Turnout']< 1)? (parseFloat(popupdata['Turnout'])*100).toFixed(2) : popupdata['Turnout'])+'%<br>';
+//removed *100	
+		html+= '<b>Turnout</b>: '+ ((popupdata['Turnout']< 1)? (parseFloat(popupdata['Turnout'])).toFixed(2) : popupdata['Turnout'])+'%<br>';
 		}
 		if(popupdata['Cand1']) {
 			html+= '<b>Winner</b>: '+ popupdata['Cand1'] +'<br>';
@@ -206,10 +207,12 @@ function getPopupDetails(popupdata) {
 			html+= '<b>Votes</b>: '+ popupdata['Votes1'] +'<br>';
 		}
 		if(popupdata['Vote_percent']) {
-			html+= '<b>Vote share</b>: '+((popupdata['Vote_percent']< 1)? (parseFloat(popupdata['Vote_percent'])*100).toFixed(2) : popupdata['Vote_percent'])+'%<br>';
+//removed *100	
+		html+= '<b>Vote share</b>: '+((popupdata['Vote_percent']< 1)? (parseFloat(popupdata['Vote_percent'])).toFixed(2) : popupdata['Vote_percent'])+'%<br>';
 		}
 		if(popupdata['Margin_percent']) {
-			html+= '<b>Margin</b>: '+((popupdata['Margin_percent']< 1)? (parseFloat(popupdata['Margin_percent'])*100).toFixed(2) : popupdata['Margin_percent'])+'%<br>';
+//removed *100
+			html+= '<b>Margin</b>: '+((popupdata['Margin_percent']< 1)? (parseFloat(popupdata['Margin_percent'])).toFixed(2) : popupdata['Margin_percent'])+'%<br>';
 		}
 		if(popupdata['Runner']) {
 			html+= '<hr>'
@@ -1197,7 +1200,8 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 			.style ( "fill" , function (d) {
 				if(rateById[d.properties[mappingColumn]] !== undefined) {
 					if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
-						return color(rateById[d.properties[mappingColumn]][col2Head]*100);
+//removed *100
+						return color(rateById[d.properties[mappingColumn]][col2Head]);
 					} else {
 						return color(rateById[d.properties[mappingColumn]][col2Head]);
 					}
@@ -1314,7 +1318,8 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					//d = 0.0556; 0,1,3,5           <1
 					var new_d = '';
 					if(d < 1) {
-						new_d = d*100;
+//removed *100
+						new_d = d;
 					} else {
 						new_d = d;
 					}
