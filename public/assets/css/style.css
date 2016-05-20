@@ -381,3 +381,7 @@ svg:not(:root) {
 #download, #embed_btn {
 	margin-bottom:30px;
 }
+hr{
+    padding: 5px;
+    margin: 0px; 
+  }

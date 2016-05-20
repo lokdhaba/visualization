@@ -8,15 +8,15 @@ var projection = d3.geo.mercator().scale(1);
 var path = d3.geo.path().projection(projection);
 
 //TCPD name in title
-var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Center for Political Data, Ashoka University';
+var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Centre for Political Data, Ashoka University';
 
 var root_path = 'assets/elections/';
 
 //List of items to display in popup
-var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","NOTA_percent","Turnout","Margin_percent","Runner","Runner_party","Runner_sex"];
+var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Votes1","NOTA_percent","Turnout","Margin_percent","Vote_percent","Runner","Runner_party","Runner_sex"];
 
 //Substitution for the field name from DB for popup
-var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA %","Turnout":"Turnout %","Margin_percent":"Margin %","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
+var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA","Turnout":"Turnout","Margin_percent":"Margin","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
 
 var empty_area_color = "#D0D0D0";
 var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
@@ -56,7 +56,7 @@ function getUrlVars() {
 function create_svg(divid, width, height) { 
 
 	var svg = d3.select("#"+divid).append("div").append("svg")
-			.attr("preserveAspectRatio", "xMinYMin meet")
+				.attr("preserveAspectRatio", "xMinYMin meet")
 	if(getUrlVars()['type'].indexOf('charts') > -1) {
 		svg.attr("viewBox", "0 0 700 400")
 	} else {
@@ -170,26 +170,61 @@ function getCleanedClassname(value) {
 //binds constituency data to popup
 function getPopupDetails(popupdata) {
 	if(popupdata != undefined) {
-		var keys = Object.keys(popupdata),
+		/*var keys = Object.keys(popupdata),
 		i, len = keys.length;
 
 		keys.sort();
 		var html = '';
 		//for(var key in popupdata){
 		for (i = 0; i < len; i++) {
-			if(keys[i] !== '' && consDetailsArr.indexOf(keys[i]) > -1) 
-			{
+			if(keys[i] !== '' && consDetailsArr.indexOf(keys[i]) > -1) {
 				if((keys[i] == 'Turnout' || keys[i] == 'Margin_percent' || keys[i] == 'NOTA_percent') && popupdata[keys[i]] < 1) {
-					html+= renamedPopupFields[0][keys[i]] +': '+(parseFloat(popupdata[keys[i]])*100).toFixed(2)+'<br>';
+					html+= renamedPopupFields[0][keys[i]] +': '+(parseFloat(popupdata[keys[i]])*100).toFixed(2)+'% <br>';
 				} else {
 					//var key1 = key.replace('_', ' ')
 					html+= renamedPopupFields[0][keys[i]] +': '+popupdata[keys[i]]+'<br>';
 				}
 			}					
+	}*/
+	var html = '';
+		if(popupdata['AC_Name']) {
+			html+= '<b>Seat</b>: '+ popupdata['AC_Name'] + ' ('+popupdata['AC_Type']+')<br>';
+		}
+		if(popupdata['Turnout']) {
+			html+= '<b>Turnout</b>: '+ ((popupdata['Turnout']< 1)? (parseFloat(popupdata['Turnout'])*100).toFixed(2) : popupdata['Turnout'])+'%<br>';
+		}
+		if(popupdata['Cand1']) {
+			html+= '<b>Winner</b>: '+ popupdata['Cand1'] +'<br>';
+		}
+		if(popupdata['Party1']) {
+			html+= '<b>Party</b>: '+ popupdata['Party1'] +'<br>';
+		}
+		if(popupdata['Sex1']) {
+			html+= '<b>Sex</b>: '+ popupdata['Sex1'] +'<br>';
+		}
+		if(popupdata['Votes1']) {
+			html+= '<b>Votes</b>: '+ popupdata['Votes1'] +'<br>';
+		}
+		if(popupdata['Vote_percent']) {
+			html+= '<b>Vote share</b>: '+((popupdata['Vote_percent']< 1)? (parseFloat(popupdata['Vote_percent'])*100).toFixed(2) : popupdata['Vote_percent'])+'%<br>';
+		}
+		if(popupdata['Margin_percent']) {
+			html+= '<b>Margin</b>: '+((popupdata['Margin_percent']< 1)? (parseFloat(popupdata['Margin_percent'])*100).toFixed(2) : popupdata['Margin_percent'])+'%<br>';
+		}
+		if(popupdata['Runner']) {
+			html+= '<hr>'
+			html+= '<b>Runner-up</b>: '+ popupdata['Runner'] +'<br>';
+		}
+		if(popupdata['Runner_party']) {
+			html+= '<b>Party</b>: '+ popupdata['Runner_party'] +'<br>';
+		}	
+		if(popupdata['Runner_sex']) {
+			html+= '<b>Sex: '+ popupdata['Runner_sex'] +'<br>';
 		}
 		return html;
 	}
 }
+
 
 
 //create link for downloading the SVG area
@@ -745,7 +780,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					.style("opacity", 1)
 					.on("click", function (d, i) {
                       var lVisibility = this.style.opacity 
-                      filterGraph(d, lVisibility);
+                      filterGraph(getCleanedClassname(d), lVisibility);
 					});
 					 
 				legend.append("text")
@@ -1171,7 +1206,7 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					return empty_area_color;
 				}
 			})
-			.style("stroke","#ccc")
+			.style("stroke","#fff")
 			.style("stroke-width","1px")
 			.style("opacity", 1)
 			.attr("d", path)			
@@ -1430,7 +1465,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 						}
 					}
 				})
-				.style("stroke","#ccc")
+				.style("stroke","#fff")
 				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
@@ -1681,7 +1716,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 						return 'class_'+getCleanedClassname(rateById[d.properties[mappingColumn]][col2Head]);
 					}
 				})
-				.style("stroke","#ccc")
+				.style("stroke","#fff")
 				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {
@@ -1886,7 +1921,7 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 						return 'class_'+getClassNameForTurnout(rateById[d.properties[mappingColumn]][col2Head]);
 					}
 				})
-				.style("stroke","none")
+				.style("stroke","#ffffff")
 				.style("stroke-width","1px")
 				.style ( "fill" , function (d) {
 					if(rateById[d.properties[mappingColumn]] !== undefined) {	
