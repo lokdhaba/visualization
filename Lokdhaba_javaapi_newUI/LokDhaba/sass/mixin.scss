@@ -1,0 +1,26 @@
+@mixin device-at-least($device) {
+	@media screen and (min-width: $device) {
+		@content;
+	}
+}
+
+@mixin box-shadow($value...) {
+	-webkit-box-shadow: $value;
+  -moz-box-shadow: $value;
+  box-shadow: $value;
+}
+
+@mixin transition($value) {
+	-webkit-transition: $value;
+  -moz-transition: $value;
+  -o-transition: $value;
+  transition: $value;
+}
+
+@mixin transform($value) {
+	-webkit-transform: $value;
+  -moz-transform: $value;
+  -ms-transform: $value;
+  -o-transform: $value;
+  transform: $value;
+}

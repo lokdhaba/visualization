@@ -1,0 +1,147 @@
+<html class="no-js" lang="en" dir="ltr">
+  <head lang="en">
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 , maximum-scale=1">
+	<meta name="description" content="">
+		<meta name="author" content="">
+		<script src="assets/plugins/d3.v3.min.js"></script>
+		<script src="assets/plugins/queue.v1.min.js"></script>
+		<script src="assets/plugins/topojson.v1.min.js"></script>
+		<!-- CORE JQUERY  -->
+		<!--script src="assets/plugins/jquery-1.10.2.js"></script-->
+		<script src="assets/plugins/jquery-2.1.1.js"></script>
+		<script src="assets/plugins/jquery-ui.js"></script>
+                
+
+		<script src="assets/js/index.js"></script>
+		<script src="assets/js/tcpd.js"></script>
+		<script src="assets/plugins/jquery-ui-slider-pips.js"></script>
+		<!-- plus a jQuery UI theme, here I use "flick" -->
+		<link rel="stylesheet" href="assets/css/jquery-ui.css">
+		<link rel="stylesheet" href="assets/css/jquery-ui-slider-pips.css">
+		
+    <title>LokDhaba :: Search</title>
+	<link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLE CSS -->
+    <link href="assets/css/font-awesome.min.css" rel="stylesheet" />
+    <!-- CUSTOM STYLE CSS -->
+    <link href="assets/css/style.css" rel="stylesheet" />
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif:400,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/foundation.css">
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <div id="header">
+      <div class="row">
+        <div class="column small-12 medium-6">
+          <a href="home.html" id="logo"><img src="assets/logo.png"></a>
+        </div>
+        <div class="column small-12 medium-6">
+          <ul class="header-links">
+            <li><a href="javascript:void(0)" id="contact-us" data-pop-up="contact">Contact Us</a></li>
+            <li><a href="javascript:void(0)" id="how-to-cite" data-pop-up="cite">How to Cite</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div id="main-content">
+      <div class="banner">
+        <span class="b-heading">Lokdhaba</span>
+        <span class="b-subheading">Food For Political Thought</span>
+      </div>
+      <div class="row filter-row">
+	  
+        <div class="column small-11 medium-10 large-9 small-centered">
+          <div class="row filter-block">
+            <div class="column small-12">
+			<p class="error_msg">Please fill all the fields</p>
+			<form id="selectionbox" action="result.html" >
+              <label class="label-flexible">Election Type:</label>
+              <input type="radio" name="election-type" value="GE" checked="checked"><span>General Elections (Lok Sabha)</span>
+              <br class="show-for-small-only">
+              <input type="radio" name="election-type" value="AE"><span>Assembly Elections (Vidhan Sabha)</span>
+            </div>
+          </div>
+          <div class="row filter-block">
+            <div class="column small-12 medium-2 state">
+              <label>State:</label>
+              <ul class="dropdown menu "  data-dropdown-menu data-options="disableHover:true; clickOpen:true;">
+                <li>
+                  <a href="" class="selected-option">Select</a>
+                 <ul id="state" class ="selectpicker">
+
+                   
+                  </ul>
+				  
+                </li>
+              </ul>
+            </div>
+            <div class="column small-12 medium-2">
+              <label>Year:</label>
+              <ul class="dropdown menu" data-dropdown-menu data-options="disableHover:true; clickOpen:true;">
+                <li>
+                  <a href="#" class="selected-option" >Select</a>
+                  <ul id="year" class ="selectpicker">
+                    <!--<li><a href="#">Option 1</a></li>-->
+                   
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div class="column small-12 medium-2">
+              <label>Visualization Type:</label>
+              <ul class="dropdown menu default-drop" data-dropdown-menu data-options="disableHover:true; clickOpen:true;">
+                <li>
+                  <a href="#" class="selected-option">Select</a>
+                  <ul id="viz_type"  class ="selectpicker">
+                    
+                    <li data-value='charts'><a href="#">Charts/Graphs</a></li>
+                    <li data-value='maps'><a href="#">Maps</a></li>
+                    
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <div class="column small-12 medium-4 results_div">
+              <label>Variables:</label>
+              <ul class="dropdown menu" data-dropdown-menu data-options="disableHover:true; clickOpen:true;">
+                <li>
+                  <a href="#" class="selected-option">Select</a>
+                  <ul id="viz_results" class="selectpicker">
+					</ul>	
+                </li>
+              </ul>
+            </div>     
+			<div class="column small-12 medium-2 parties_td">
+              <label>Parties:</label>
+               <ul class="dropdown menu" data-dropdown-menu data-options="disableHover:true; clickOpen:true;">
+                <li>
+                  <a href="#" class="selected-option">Select</a>
+                  <ul id="parties" class="selectpicker">
+					</ul>	
+                </li>
+              </ul>
+            </div>			
+          </div>
+        </div>
+        <div class="column small-11 medium-10 large-9 small-centered">
+          <div class="filter-buttons buttons-wrap">
+              <a href="#" class="button primary" id="search_submit">Go</a>
+              <a href="#" class="button">Clear</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="footer">
+      <span>Copyright 2015, Trivedi Center For Political Data.</span>
+    </div>
+    <div id="glass" class="hide"></div>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/vendor/what-input.js"></script>
+    <script src="js/vendor/foundation.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
