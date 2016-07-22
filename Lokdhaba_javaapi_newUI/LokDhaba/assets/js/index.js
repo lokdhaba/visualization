@@ -1,12 +1,12 @@
 	//api path for json data
-	var api_root_path = 'http://localhost:8080/tcpd_ga_new/';
+	var api_root_path = 'http://localhost:8080/tcpd_ga_nc/';
 	
 	$(function(){
 		
 		function mapDataFromSearchToResult(element_id, data_value) {
 			//$("#year").html('');
-			console.log()
-			console.log($("#"+element_id ).html());
+			//console.log()
+			//console.log($("#"+element_id ).html());
 			$('#'+element_id).removeClass('js-dropdown-active').prev().html($("#"+element_id +" li[data-value ='"+data_value+"'] a").text());	
 			$('#'+element_id +' li').removeClass('selected');
 			//$(this).parent().addClass('selected');
@@ -132,14 +132,7 @@
 			//mapDataFromSearchToResult('year', params['year'] );
 			mapDataFromSearchToResult('viz_type', params['viz'] );
 			mapDataFromSearchToResult('viz_results', params['dis'] );
-			$.getJSON(api_root_path+'api/ge/year', function(data) {	
-				var list='';
-				$.each(data, function(i, item) {
-					list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
-				});	
-				$("#year").html(list);
-				mapDataFromSearchToResult('year', params['year'] );
-			});
+			
 			$("input[name=election-type][value=" + params['type'] + "]").prop('checked', true);
 			if(params['type'] == 'GE') {
 				$.getJSON(api_root_path+'/api/ge/year', function(data) {
@@ -162,15 +155,28 @@
 					});	
 					$("#state").html(list);
 					mapDataFromSearchToResult('state', params['state'] );
-					createmaps('','','');
+					//createmaps('','','');
+					$.getJSON(api_root_path+'/api/ae/year?state='+$("#state li.selected").attr('data-value'), function(data) {
+						var list='';
+						$.each(data, function(i, item) {
+							//$('<option />', {value: item, text:item}).appendTo(s1);
+							list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+						});	
+						$("#year").html(list);
+						mapDataFromSearchToResult('year', params['year'] );
+						createmaps('','','');
+					});
+					
 				});
+				
 				$(".state").show();
 			}
 		}
 		
 		
-		$('#state').on('change', function() {
-			$.getJSON(api_root_path+'api/ae/year?state='+this.value, function(data) {
+		$('#state').on('click','li', function() {
+			console.log('inside year');
+			$.getJSON(api_root_path+'api/ae/year?state='+$(this).attr('data-value'), function(data) {
 				var list='';
 				$.each(data, function(i, item) {
 					//$('<option />', {value: item, text:item}).appendTo(s1);
@@ -186,8 +192,8 @@
 		
 		$('input[type=radio][name=election-type]').change(function() {
 			$('#filtervalued').empty();
-			//$('#state').find('option').remove().end().append('<option value="">Select</option>');
-			//$('#year').find('option').remove().end().append('<option value="">Select</option>');
+			$("#state").html('');
+			$("#year").html('');
 			$('#parties').find('option').remove().end().append('<option value="">Select</option>');
 			//$("select#state").removeAttr('selected').find('option:first').attr('selected', 'selected');
 			//$("select#year").removeAttr('selected').find('option:first').attr('selected', 'selected');
@@ -200,9 +206,6 @@
 			viz = '';
 			state = '';
 			year = '';
-			
-			
-			
 			
 			//$('select[name=viz_options]').hide();
 			if(this.value == 'GE') {
@@ -224,12 +227,7 @@
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#state").html(list);
-					dropdownUpdate('state');
-					/*var s1 = $("#state");
-					$.each(data, function(i, item) {
-						$('<option />', {value: item, text:item.replace("_"," ")}).appendTo(s1);
-					});*/
-					years_list = data;
+					dropdownUpdate('state');				
 				});
 				$(".state").show();
 			}
@@ -254,12 +252,14 @@
 			party = '';
 			var year = $("#year li.selected").attr('data-value');
 			var state = $("#state li.selected").attr('data-value');
-			console.log(year);
+			//console.log(year);
 			if($(this).hasClass('parties')) {
 				var api_path='';
 				$(".parties_td").show();
 				//alert($(this).attr('class'));
-				if($("input[name='election_type']:checked").val() == 'AE') {
+				console.log($("input[name='election_type']:checked").val());
+				var elect_type = $("input[name='election-type']:checked").val();
+				if(elect_type == 'AE') {
 					api_path = api_root_path+'api/ae/partieslist?state='+state+'&year='+year;
 				} else {
 					api_path = api_root_path+'api/ge/partieslist?year='+year;
@@ -285,6 +285,7 @@
 				party = ' ';
 			}
 			viz_option = $(this).attr('data-value');
+			dropdownUpdate('viz_results');
 //console.log(viz_option+','+list);			
 		});
 		
@@ -305,7 +306,7 @@
 			$('#legend_filter').empty();
 			$('#selectionbox > input:hidden').attr("disabled",true);
 			
-			$( "#mainGraphDiv" ).empty();
+			$( ".mainGraphDiv" ).empty();
 			var elect_type = $("input[name='election-type']:checked").val();
 			if(elect_type == 'AE') {
 				state = $("#state li.selected").attr('data-value');
@@ -322,6 +323,7 @@
 				year = $("#year li.selected").attr('data-value');
 			}
 			
+			console.log(year);
 			var viz_type = $("#viz_type li.selected").attr('data-value');
 			var viz_option = $("#viz_results li.selected").attr('data-value');
 			var year1 = '2000';
@@ -336,12 +338,15 @@
 			} else if (viz_type == 'charts' && elect_type == 'GE') {
 				showGeChartsVizualisation(elect_type, state, year, viz_option, party );
 			} else if (viz_type == 'maps' && elect_type == 'AE') {
-				//alert('inside map');
+				alert('inside map');
 				showAeMapVizualisation(elect_type, state, year, viz_option, party);
 			} else if (viz_type == 'charts' && elect_type == 'AE') {
 			//alert();
 				showAeChartsVizualisation(elect_type, state, year, viz_option, party );
 			}
+			
+			
+			//$('.jscolor').ColorPicker({flat: true});
 			/*
 			$("#download").show();
 			$("#side_panel").show();
@@ -353,6 +358,8 @@
 			}*/
 			
 		}
+		
+		
 		
 		function generateSlider(data, selected_value) {
 			$(".slider")				
@@ -405,7 +412,7 @@
 			var viz_type = $("#viz_type li.selected").attr('data-value');
 			var params = { type:elect_type,state:state, year:year,viz:viz_type,dis:viz_option,party:party };
 			var str = $.param( params );
-			console.log(str);
+			//console.log(str);
 			
 			$(this).attr("href", 'result.html?'+str+'&search=1');
 			//var recursiveEncoded = $.param( myObject );
