@@ -1,5 +1,5 @@
 	//api path for json data
-	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
+	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/'
 
 	$(function(){
 		
@@ -212,9 +212,7 @@
 			$('#filtervalued').empty();
 			$("#state").html('');
 			$("#year").html('');
-			
-			$("select#viz_type").removeAttr('selected').find('option:first').attr('selected', 'selected');
-			$("select[name=viz_options]").removeAttr('selected').find('option:first').attr('selected', 'selected');
+
 			$('.results_div').hide();
 			$(".parties_td").hide();
 			party ='';
@@ -232,6 +230,7 @@
 						list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
 					});	
 					$("#year").html(list);
+					$("#year").removeClass('js-dropdown-active').prev().html('Select');
 					dropdownUpdate('year');
 				});
 				$(".state").hide();
@@ -243,6 +242,7 @@
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#state").html(list);
+					$("#state").removeClass('js-dropdown-active').prev().html('Select');
 					dropdownUpdate('state');				
 				});
 				$(".state").show();
@@ -452,7 +452,7 @@
 			var party = '';
 			party = $("#parties li.selected").attr('data-value');
 			year = $("#year li.selected").attr('data-value');
-
+			viz_option = $("#viz_results li.selected").attr('data-value');
 			
 			var viz_type = $("#viz_type li.selected").attr('data-value');
 			if(state == undefined || year == undefined || viz_option == undefined || viz_type ==undefined ) {
