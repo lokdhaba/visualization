@@ -305,7 +305,7 @@ function toggleHeadingEditNew() {
 		var G3 = document.getElementsByClassName("title_line")
 		var BB3 = G3[0].getBBox()
 		
-		console.log(BB1);
+		//console.log(BB1);
 		G2[0].setAttribute("transform", "translate("+ ((BB1.x+BB1.width)-BB2.x) + 0 +")")
 		
 		
@@ -401,16 +401,7 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("color","#333333")
 	  .text(brand1);
 	  
-	  title.append("line")
-		.attr("class", "title_line")
-		.attr("x1", 0)
-		.attr("y1", 40)
-		.attr("x2", width)
-		.attr("y2", 40)
-		.style("stroke","#DADADA")
-		.style("stroke-width","1px")
-		.style("shape-rendering","crispEdges");
-	
+	  
 		  
 	title.append("foreignObject")
 		.attr("x", width)
@@ -432,25 +423,44 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("color","#333333 !important")
 	  .text(brand2);
 	  
-	  title.append("text")
-	  .attr("class", "title")
+	  title.append("rect")
+	  .attr("class", "title_rect")
+	  .attr('width','10')
+	  .attr('height','20')
 	  .attr("x", width/2)
-	  .attr("y", 110)
+	  .attr("y", 100)
+	  .style('fill','none')
 	  .attr("text-anchor", "middle")
 	  .style("font-size","10px")
 	  .text('    ');
 	
+
+	title.append("line")
+		.attr("class", "title_line")
+		.attr("x1", 0)
+		.attr("y1", 40)
+		.attr("x2", width)
+		.attr("y2", 40)
+		.style("stroke","#DADADA")
+		.style("stroke-width","1px")
+		.style("shape-rendering","crispEdges");
+		
 		alignTitle();
+		
+		
 }
 
 function alignTitle() {
 	var G1 = document.getElementsByClassName("title")
 	var G2 = document.getElementsByClassName("stitle")
+	var G3 = document.getElementsByClassName("title_line")
 	var BB1 = G1[0].getBBox()
 	var BB2 = G2[0].getBBox()
+	var BB3 = G3[0].getBBox()
 	
 	//console.log(BB1);
 	G2[0].setAttribute("transform", "translate("+ ((BB1.x+BB1.width+5)-BB2.x) + 0 +")")
+	G3[0].setAttribute("x2", ((BB1.x+BB1.width+BB2.width+5)))
 }
 
 //Creates AE charts based on the selection box values
@@ -505,7 +515,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 
 	var api_path = api_root_path+'api/ae/elections?state='+state+'&year='+year;
 	//console.log(api_path);
-	var api_path2 = api_path+'&party='+party;
+	var api_path2 = api_root_path+'api/ae/elections/partypositions?state='+state+'&year='+year+'&party1='+party;
 	var topoJsonpath = root_path+state+'.json';
 	var filter_column_name ='';
 	
@@ -522,7 +532,6 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 			break;
 			
 		case 'position':
-		alert();
 			filter_column_name = 'position';
 			createMapsPositions(600, 300,topoJsonpath,api_path2, 6, 'Individual party positions across constituencies ',state+' '+year,'ac_no',filter_column_name,'#393b79', 'ac');
 			break;
@@ -566,7 +575,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 		case 'winners':
 			filter_column_name = 'party1';
 			var partiesPath = api_root_path+'api/ae/parties?state='+state+'&year='+year+'&limit=5';
-			console.log(partiesPath);
+			//console.log(partiesPath);
 			createMapsWinners(600, 300,topoJsonpath,api_path, partiesPath, 6, 'Winners across constituencies',state+' '+year,'ac_no',filter_column_name,usercolors, 'ac');
 				break;
 				
@@ -957,9 +966,10 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 							$("."+$(this).attr("name")).css('stroke', color.toHexString());
 							$(".legend"+$(this).attr("name")).css('background-color', color.toHexString());
 							$("."+$(this).attr("name")+" > .color_plot").css('fill', color.toHexString());
-							console.log($("."+$(this).attr("name")+'.color_plot'));
-							console.log(color.toHexString()
-							)}
+							//console.log($("."+$(this).attr("name")+'.color_plot'));
+							//console.log(color.toHexString()
+							//)
+							}
 					});		
 				
 				
@@ -1045,9 +1055,13 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
 			}
 					
 					
@@ -1358,9 +1372,13 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
 			}
 		//remove popoup 			
 		function removePopovers () {
@@ -1404,306 +1422,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 	legend_unit = unit for legend eg: %
 */
 
-function createMapsRanges_o(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values, legend_unit) {
 
-	var margin = {top: 15, right: 15, bottom: 15, left: 15};
-	var divid = create_draw_area(gSeqNo,mheading,sheading);
-	var svg = create_svg(divid,width, height);
-	createMapTitle(svg, width, height, margin, mheading, sheading);
-	
-	width  = width - margin.left - margin.right,
-	height = height  - margin.top  - margin.bottom;
-	
-	var color_domain = legend_values;
-	var legend_ranges = getLegendRanges(color_domain,legend_unit)
-	var ext_color_domain = legend_ranges[0];
-	var legend_labels = legend_ranges[1];
-//usercolor = '#004E94';
-	var rateById = {};
-	var c = d3.rgb(usercolor);
-	var minimumColor = c.brighter().toString();
-	var new_domain = ''
-	if(usercolor == '#393b79') {
-		//var minimumColor = "#BFD3E6", usercolor = "#88419D";
-		var minimum = 20, maximum = 74;
-		var minimumColor = "#BFD3E6"
-		var new_domain = [minimum,maximum];
-	} else {
-		var new_domain = color_domain;
-	}
-	
-
-	var color = d3.scale.linear().domain(new_domain).range([minimumColor, usercolor]);
-
-	var topoObject = topoJsonpath.split('\\').pop().split('/').pop().split('.')[0];
-	/*
-	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
-	var title_area = title_dim[0][0].getBBox();
-			*/
-	$.getJSON(csvPath, function(data) {
-       
-		data.forEach(function(d) { 
-			rateById[d[col1Head]] = d; 
-		});
-		
-		d3.json(topoJsonpath, function(error, mdata) {
-		//if (error) throw error;
-
-			var center_scale = getMapCenterScale(mdata.objects[topoObject].bbox, width, height);
-			
-			//var new_height = height- title_area.y;
-			var new_height = height;
-			projection
-			.translate([width / 2, new_height / 2])
-			.center(center_scale[0])
-			.scale(center_scale[1]);
-
-			svg.append("g")				
-			.attr("transform", "translate(" + margin.left + "," +(0) + ")")
-			.selectAll("path")
-			.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-			.enter().append("path")
-			.style ( "fill" , '#D0D0D0')
-			.style("stroke-width","1px")
-			.style("stroke","#fff")
-			.attr("d", path)
-		
-			svg.append("g")				
-			.attr("transform", "translate(" + margin.left + "," +(0) + ")")
-			.attr("class", "counties")
-			
-			.selectAll("path")
-			.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
-			.enter().append("path")
-			.attr("class", function(d) { 
-				if(rateById[d.properties[mappingColumn]] !== undefined) {
-					return 'class_'+getClassNameForTurnout(rateById[d.properties[mappingColumn]][col2Head]);
-				}
-			})
-			.style ( "fill" , function (d) {
-				if(rateById[d.properties[mappingColumn]] !== undefined) {
-					if(rateById[d.properties[mappingColumn]][col2Head] < 1) {
-						return color(rateById[d.properties[mappingColumn]][col2Head]*100);
-					} else {
-						return color(rateById[d.properties[mappingColumn]][col2Head]);
-					}
-					
-				} else {
-					return empty_area_color;
-				}
-			})
-			.style("stroke","#fff")
-			.style("stroke-width","1px")
-			.style("opacity", 1)
-			.attr("d", path)			
-			.on("mouseover", function (d) { showPopover.call(this,d); })
-			.on("click", function (d) { showPopover.call(this, d); })
-			.on("mouseout",  function (d) { removePopovers(); })
-						
-			if(ext_color_domain.length > 0){		
-
-
-				var n_legend = d3.select("#legend_panel")
-								
-								.selectAll(".new_legend")
-								.data(ext_color_domain)
-								.enter()
-								.append("div")
-								.attr("class", function(d) { return 'bar-item-color class_'+d;});
-				
-						n_legend.append("div")
-								.attr("class", "color-block")
-								.style("background-color",function(d){ return color(d); })
-								n_legend.append("span")
-								.attr("class", "item-label")
-								.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); });
-				
-				var n1_legend = d3.select("#legend_filter")
-									.append("div")
-									.attr("class", "checkbox-wrap");
-						n1_legend.append("input")
-									.attr("checked", true)
-									.attr("type", "checkbox")
-									.attr("id", "All")
-									.attr("value", "All")
-									.on("click", function (d) { selectAllChkBox(this); })
-						n1_legend.append("span")
-									.text("All");
-									
-				var n2_legend =	d3.select("#legend_filter")
-									.selectAll(".new_legend_filter")
-									.data(ext_color_domain)
-									.enter()
-									.append("div")
-									.attr("class", "checkbox-wrap");
-								
-						n2_legend.append("input")
-									.attr("checked", true)
-									.attr("type", "checkbox")
-									.attr("value", function(d) { return d;})
-									.attr("name", function(d) { return 'class_'+d;})
-									.attr("id", function(d) { return d;})
-									.on("click", function (d) { sidefilterGraph(this); })
-								
-						n2_legend.append("span")
-									.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); });
-			
-				/*var	graph_dim = svg.selectAll(".counties").data([true]) ;
-				var graph_area = graph_dim[0][0].getBBox();
-				
-				var ls_w = 20, ls_h = 15;
-				 
-				var legend = svg.append("g")
-					.attr("transform", "translate(0," +(title_area.height ) + ")")
-					.attr("class","legend_grp")
-					.selectAll(".legend")
-					.data(ext_color_domain)
-					.enter().append("g")
-					.attr("class", "legend");
-
-				legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width+30)
-					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-					.attr("width", ls_w)
-					.attr("height", ls_h)
-					.style("fill", function(d){ return color(d); })
-					.style("opacity", 1)
-					.on("click", function (d, i) {
-                      // register on click event
-                     // console.log ('opacity:' + this.style.opacity  );
-                      var lVisibility = this.style.opacity 
-                     // console.log ('lVisibility:' + lVisibility  );
-                      filterGraph(d, lVisibility);
-					});
-					 
-				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width + 60)
-					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-					.style("font-size","12px")
-					.style("opacity", 1)
-					.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); })
-					.on("click", function (d, i) {
-                      // register on click event
-                     // console.log ('opacity:' + this.style.opacity  );
-                      var lVisibility = this.style.opacity 
-                     // console.log ('lVisibility:' + lVisibility  );
-                      filterGraph(d, lVisibility);
-					});
-				createlegendBorder(svg)*/
-				
-				
-				
-							
-							
-				/*	
-				
-				d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-				
-							/*
-				var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
-
-				var keys = legend1.selectAll('li.key')
-							.data(ext_color_domain)
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+d;})
-							.text(function(d, i){  return legend_labels[i]; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d;})
-							.attr("name", function(d) { return 'class_'+d;})
-							.attr("id", function(d) { return 'class_'+d;})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});
-							
-							/*var zoom = d3.behavior.zoom()
-							.on("zoom",function() {
-								g.attr("transform","translate("+ 
-									d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-								g.selectAll("path")  
-									.transition().duration(300).attr("d", path.projection(projection)); 
-						});
-
-						g.call(zoom)*/
-				//resizeSvg(svg, '.counties');
-			}	
-				function getClassNameForTurnout(d) {
-					//d = 0.0556; 0,1,3,5           <1
-					var new_d = '';
-					if(d < 1) {
-						new_d = d*100;
-					} else {
-						new_d = d;
-					}
-					if(new_d< ext_color_domain[1]){
-						return ext_color_domain[0];
-					} else if(new_d> ext_color_domain[ext_color_domain.length-1]){
-						return ext_color_domain[ext_color_domain.length-1];
-					} else {
-						for(var i=1;i<ext_color_domain.length-1;i++){
-							if((new_d) >= parseInt(ext_color_domain[i]) && new_d <= parseInt(ext_color_domain[i+1])) {
-								return ext_color_domain[i];
-							}
-						}
-					}
-					
-				}
-					
-				//remove popoup 	
-				function removePopovers () {
-				  $('.popover').each(function() {
-					$(this).remove();
-				  }); 
-				}
-
-				//Show popup
-				function showPopover (d) {
-				  $(this).popover({
-					title: d.name,
-					placement: 'auto top',
-					container: 'body',
-					trigger: 'manual',
-					html : true,
-					content: function() { 
-						return getPopupDetails(rateById[d.properties[mappingColumn]]);
-					}
-				  });
-				  $(this).popover('show')
-				}
-				
-				//bind download svg link to the download button on sidepanel
-				d3.select("#download")
-				.on("mouseover", writeDownloadLink);
-			
-		});
-	});
-	//alert('map3');
-}
- 
- 
  
 function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading, sheading, col1Head, col2Head, usercolor, mappingColumn, legend_values, legend_unit) {
 
@@ -1853,7 +1572,7 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 						}
 						
 					}
-					console.log(legend_labels);
+					//console.log(legend_labels);
 				var legend = svg.append("g")
 						.attr("class","legend_grp")
 											
@@ -1906,9 +1625,13 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
 			}				
 				/*var	graph_dim = svg.selectAll(".counties").data([true]) ;
 				var graph_area = graph_dim[0][0].getBBox();
@@ -2105,7 +1828,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				legend_labels.push(d['party1']);
 				count_labels[d['party1']] = d['count'];
 		});
-		console.log(legend_labels);
+		//console.log(legend_labels);
 	});
 
 	$.getJSON(csvPath, function(data) {
@@ -2233,7 +1956,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 					var checkedIds = $("#legend_filter > .checkbox-wrap > input:checkbox:checked").map(function() {
 						if(this.id!='All'){return (this.id);}
 					}).get();
-					console.log(checkedIds);
+					//console.log(checkedIds);
 //console.log(ext_color_domain);
 					var results = [], new_legend_labels=[];
 					for (var i = 0; i < legend_labels.length; i++) {
@@ -2303,9 +2026,13 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
 			}
 			
 				
@@ -2465,7 +2192,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 							.attr("id", "All")
 							.attr("value", "All")
 							.on("click", function (d) { selectAllChkBox(this); 
-							createLegends(svg, legend_labels, color);})
+							createLegends(svg, legend_labels, color_codes, color);})
 							
 				n1_legend.append("span")
 							.text("All");	
@@ -2496,12 +2223,12 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				var ls_w = 20, ls_h = 15;
 					//console.log(ageNames);
 					var checkedIds = $("#legend_filter > .checkbox-wrap > input:checkbox:checked").map(function() {
-						if(this.id!='All' || this.id!='>3'){
-							if(this.id)return Number(this.id);}
+						if(this.id!='All'){
+							return (this.id);}
 					}).get();
-					console.log(checkedIds);
+					//console.log(checkedIds);
 //console.log(ext_color_domain);
-					var results = [], new_legend_labels=[];
+					var results = [];
 					for (var i = 0; i < legend_labels.length; i++) {
 						if (checkedIds.indexOf(legend_labels[i]) !== -1) {
 							results.push(legend_labels[i]);
@@ -2567,10 +2294,17 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 					var G3 = document.getElementsByClassName("legend_grp");
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
+					//d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+BB3.width+ margin.left)) )
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
 					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					//d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
 			}
 			
 			/*
@@ -2769,7 +2503,7 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 	var color = d3.map();
 
 	$.getJSON(csvPath, function(data) {
-       
+       //console.log(csvPath);
 		data.forEach(function(d) { 
 			rateById[d[col1Head]] = d; 
 		});
@@ -2789,6 +2523,7 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 			svg.append("g")				
 				.attr('class','chart_area')
 				.attr("transform", "translate(" + margin.left + "," +(margin.top + 10) + ")")
+				.selectAll("path")
 				.data(topojson.feature(mdata, mdata.objects[topoObject]).features)
 				.enter().append("path")
 				.style ( "fill" , '#D0D0D0')
@@ -2873,7 +2608,7 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 						}
 						
 					}
-					console.log(legend_labels);
+					//console.log(legend_labels);
 				var legend = svg.append("g")
 						.attr("class","legend_grp")
 											
@@ -2926,9 +2661,15 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 					var BB3 = G3[0].getBBox();
 					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
 					
-					d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					if(BB1.width < (BB2.width+BB3.width)) {
+						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+					} else {
+						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+					}
 					
-					d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+					//d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
 			}
 			
 		

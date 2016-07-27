@@ -2073,7 +2073,8 @@ select {
   .menu > li > a {
     display: block;
     padding: 0.7rem 1rem;
-    line-height: 1; }
+    line-height: 1; 
+	text-decoration: none;}
   .menu input,
   .menu a,
   .menu button {
@@ -2283,7 +2284,11 @@ select {
 .dropdown.menu > li.opens-right > .is-dropdown-submenu {
   right: auto;
   left: 0;
-  top: 100%; }
+  top: 100%; 
+  overflow-x: hidden;
+	max-height:183px;
+	overflow-y: auto;
+	white-space:nowrap;}
 
 .dropdown.menu > li.is-dropdown-submenu-parent > a {
   padding-right: 1.5rem;

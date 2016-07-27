@@ -137,6 +137,8 @@ function traverseSteps() {
 			// current step is the 2nd last step, change text to 'Proceed'
 			if (currentStep+1 == stepsObj.length-1) {
 				$('#get-started-pu .pu-buttons-wrap .button').last().text('Proceed');
+				$('#get-started-pu .pu-buttons-wrap .button').last().attr('href','search.html');
+				return false;
 			}
 		}
 	}
@@ -167,6 +169,35 @@ function traverseSteps() {
 		}		
 	}
 }
+
+
+
+// shows the get started pop-up
+$('#embed-btn').click(showEmbedPopUp);
+
+// clicking close button would close the pop-up
+$('#embed-btn-pu .pu-close').click(closeEmbedPopUp);
+$('#embed-close').click(closeEmbedPopUp);
+// adds step-active to first step-no & shows first step-section
+function showEmbedPopUp() {
+	$('#embed-btn-pu .step-no:eq(0)').addClass('step-active');
+	$('#embed-btn-pu .step-section:gt(0)').addClass('hide');
+
+	// position the pop-up
+	positionPopUp($('#embed-btn-pu'));
+
+	$('#embed-btn-pu, #glass').removeClass('hide');
+}
+
+//$('#myModal').foundation('reveal', 'open');
+// removes the markup to original state
+function closeEmbedPopUp() {
+	$('#embed-btn-pu, #glass').addClass('hide');
+	$('#embed-btn-pu .step-no').removeClass('step-active');
+	$('#embed-btn-pu .step-section').removeClass('hide');
+}
+
+
 
 /*------------------------------------------------------------------
                     	Wide Filter Minimizer

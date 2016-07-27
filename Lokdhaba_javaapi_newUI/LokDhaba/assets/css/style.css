@@ -376,7 +376,20 @@ svg:not(:root) {
 }
 
 #iframe_width, #iframe_height {
-	width:50px;
+	width:15%;
+	display:inline;
+}
+
+#iframew, #iframeh {
+	display:inline-block;
+}
+
+.pu-embed-block{
+	display:inline;
+}
+
+pre code { 
+	border:none;
 }
 
 hr{

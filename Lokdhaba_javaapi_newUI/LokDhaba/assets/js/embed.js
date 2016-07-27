@@ -1,4 +1,4 @@
-var api_root_path = 'http://localhost:8080/tcpd_api';
+var api_root_path = 'http://localhost:8080/tcpd_ga_nc/';
 $(document).ready(function(){
 		function getUrlVars()
 			{
@@ -24,7 +24,7 @@ $(document).ready(function(){
 			if (type[1] == 'maps' && type[0] == 'GE') {
 				showGeMapVizualisation(type[0], arr['state'], arr['year'], arr['dis'], arr['party'] );
 			} else if (type[1] == 'charts' && type[0] == 'GE') {
-				showGeChartsVizualisation(type[0], arr['state'], '2014', arr['dis'], arr['party'] );
+				showGeChartsVizualisation(type[0], arr['state'], arr['year'], arr['dis'], arr['party'] );
 			} else if (type[1] == 'maps' && type[0] == 'AE') {
 				showAeMapVizualisation(type[0], arr['state'], arr['year'], arr['dis'], arr['party'] );
 			} else if (type[1] == 'charts' && type[0] == 'AE') {

@@ -502,8 +502,8 @@ input[type="radio"]:checked::after {
   margin-bottom: 10px; }
   .dropdown ul {
     margin: 0;
-    min-width: 0;
-    width: 100%;
+    /*min-width: 0;*/
+    min-width: 100%;
     margin-top: -1px;
     border: 1px solid #D3D9DC; }
     .dropdown ul li:nth-child(n+2) a {
@@ -517,7 +517,13 @@ input[type="radio"]:checked::after {
     color: #666666;
     padding: 0 10px;
     line-height: 38px;
-    background-color: #ffffff; }
+    background-color: #ffffff; 
+	text-decoration:none;}
+	
+	.dropdown.menu .selectpicker li  a {
+    height: 30px !important;
+	line-height:30px;}
+	
     .dropdown.menu a:not(.selected-option):hover {
       background-color: #F1F1F1; }
   .dropdown .selected-option {

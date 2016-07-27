@@ -40,11 +40,44 @@
           </ul>
         </div>
       </div>
+      <div class="row pop-up-wrap hide" id="header-pop-up">
+        <div class="column small-12 medium-10 large-9 small-centered">
+          <div class="pu-tiles-wrap">
+            <div class="pu-tile" id="pu-t-contact">Contact Us</div>
+            <div class="pu-tile" id="pu-t-cite">How to Cite</div>
+            <div class="pu-close"></div>
+          </div>
+          <div class="pu-body">
+            <div id="pu-b-contact">
+              <p>For all suggestions, feedback, comments and requests please use our contact location given below.</p>
+              <label>Email:</label>
+              <span class="contact-mail">tcpd@ashoka.edu.in</span>
+            </div>
+            <div id="pu-b-cite">
+              <div class="pu-cite-block">
+                <label class="label-highlight">Election results data:</label>
+                <ul>
+                  <li>Jensenius, F.,Verniers, G. Indian State Assembly Election and Candidates Data(1962-Present)</li>
+                  <li>Jensenius, F.,Verniers, G. Indian National Election and Candidates Data(1962-Present)</li>
+                </ul>
+              </div>
+              <div class="pu-cite-block">
+                <label class="label-highlight">Caste data:</label>
+                <ul>
+                  <li>Kumar, S., Jaffrelot, Ch., Verniers, G. Indian Lok Sabha Legislators and Candidates Caste Dataset(1952- Present) </li>
+                  <li>Kumar, S., Jaffrelot, Ch., Verniers, G. Indian Assembly Legislators and Candidates Caste Dataset(1952- Present)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div id="main-content">
       <div class="wide-filter">
         <div class="row filter-row">
           <div class="column small-11 large-10 small-centered">
+			<p class="error_msg">Please fill all the fields</p>
             <div class="row filter-block">
               <div class="column small-12">
                 <label class="label-flexible">Election Type:</label>
@@ -121,7 +154,7 @@
           <div class="column small-11 large-10 small-centered">
             <div class="filter-buttons buttons-wrap">
                 <a href="result.html" class="button primary show_viz">Go</a>
-                <a href="#" class="button">Clear</a>
+                <a class="button clear_viz">Clear</a>
               </div>
           </div>
           <div class="minimizer" id="wf-minimizer"></div>
@@ -167,9 +200,9 @@
               </li>              
             </ul>
             <div class="filter-buttons buttons-wrap">
-                <a href="#" class="button primary">Compare Graph/Map</a>
-                <a href="#" id="download" class="button primary">Download</a>
-                <a href="#"  id="embed_btn" class="button primary" data-toggle="modal" data-target="#myModal">Embed Code</a>
+                <a href="#"  id="compare_viz" class="button primary">Compare Graph/Map</a>
+                <a id="download" class="button primary" download>Download</a>
+                <a id="embed-btn" class="button primary">Embed Code</a>
             </div>
           </div>
         </div>
@@ -205,13 +238,29 @@
         </div>
       </div>
 	  
-	   <div class="modal-dialog">
-
-		<!-- Modal content-->
-		
-
-	  </div>
-	  
+	  <div class="row pop-up-wrap hide" id="embed-btn-pu">
+        <div class="column small-12 medium-10 large-9 small-centered">
+          <div class="pu-tiles-wrap">
+            <div class="pu-tile pu-solo-tile">Embed Code</div>
+            <div class="pu-close"></div>
+          </div>
+          <div class="pu-body">
+			<div class="pu-embed-block">
+				<label>Size</label>
+			  width:<input type="number" name="iframe_width" id="iframe_width" class="iframedim" value="400"/> x height:<input type="number" name="iframe_height" id="iframe_height" class="iframedim" value="400"/>
+			 </div> 
+			  <pre><code>
+&lt;iframe width=&quot;<label id="iframew">400</label>&quot; height=&quot;<label id="iframeh">400</label>&quot; scrolling=&quot;no&quot; src=&quot;<label id="embed_url"></label>&quot;&gt;&lt;/iframe&gt;
+			  </code></pre>
+			          
+            <div class="pu-buttons-wrap">
+              <a id="embed-close" class="button primary">Close</a>
+             
+            </div>
+			</div>
+          </div>
+        </div>
+      </div>
 	  
     </div>
     <div id="footer">
@@ -220,7 +269,7 @@
     <div id="glass" class="hide"></div>
 	
 		<script src="js/vendor/jquery.js"></script>
-		 <script src="js/vendor/what-input.js"></script>
+		<script src="js/vendor/what-input.js"></script>
 		<script src="js/vendor/foundation.js"></script>
 		<script src="js/app.js"></script>
 		<script src="assets/plugins/bootstrap.js"></script>

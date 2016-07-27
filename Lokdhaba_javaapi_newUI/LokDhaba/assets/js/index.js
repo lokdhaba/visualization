@@ -1,22 +1,19 @@
 	//api path for json data
-	var api_root_path = 'http://localhost:8080/tcpd_ga_nc/';
-	
+	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
+
 	$(function(){
 		
 		function mapDataFromSearchToResult(element_id, data_value) {
-			//$("#year").html('');
-			//console.log()
-			//console.log($("#"+element_id ).html());
+
 			$('#'+element_id).removeClass('js-dropdown-active').prev().html($("#"+element_id +" li[data-value ='"+data_value+"'] a").text());	
 			$('#'+element_id +' li').removeClass('selected');
-			//$(this).parent().addClass('selected');
 			
 			$("#"+element_id +" li[data-value ='"+data_value+"']").addClass('selected');
 
 		}
 	
 		function getListForVariables(viz, elect_type) {
-		//console.log(viz+','+elect_type);
+
 			if((viz == 'Charts/Graphs' || viz =='charts') && elect_type == 'AE') {
 				var html ='';
 				html += "<li data-value='voter_turnout'><a href=''>Voter Turnout</a></li>";
@@ -90,13 +87,16 @@
 			return html;
 		}
 		
-		$("#side_panel").hide();
 		$(".state").hide();
 		$(".parties_td").hide();
 		$(".results_div").hide();
 		$(".ge_select").hide();
+		$(".edit-icon").hide();
 		//$(".ae_select").hide();
 		$("#default_select").show(); 
+		$("#download").hide();
+		$("#embed-btn").hide();
+		$("#compare_viz").hide();
 		//$("#download").hide();
 		var party ='';
 		var viz_option ='';
@@ -104,37 +104,24 @@
 		var state = '';
 		var year = '';
 		var years_list = {};
-		$.getJSON(api_root_path+'api/ge/year', function(data) {
-			//console.log("inside year");
-			//$('#year').find('option').remove().end().append('<option value="">Select</option>');
-			//var s1 = $("#year");
-			var list='';
-			$.each(data, function(i, item) {
-				//$('<option />', {value: item, text:item}).appendTo(s1);
-				list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
-			});	
-			$("#year").html(list);
-			dropdownUpdate('year');
-			years_list = data;
-			//$(".menu").foundation();
-		});
 		
 		//Load Result.html page with the parameters from search.html
 		//Section starts
+		
+		
 		var params = getUrlVars();
 		if(params['search'] == 1) {
 			$('.results_div').show();
 			var html = getListForVariables(params['viz'], params['type']);
 		
 			$('#viz_results').html(html);
-			
-			//mapDataFromSearchToResult('state', params['state'] );
-			//mapDataFromSearchToResult('year', params['year'] );
+
 			mapDataFromSearchToResult('viz_type', params['viz'] );
 			mapDataFromSearchToResult('viz_results', params['dis'] );
 			
 			$("input[name=election-type][value=" + params['type'] + "]").prop('checked', true);
 			if(params['type'] == 'GE') {
+				api_path = api_root_path+'api/ge/partieslist?year='+params['year'];
 				$.getJSON(api_root_path+'/api/ge/year', function(data) {
 					var list='';
 					$.each(data, function(i, item) {
@@ -147,23 +134,24 @@
 				});
 				$(".state").hide();
 			} else {
+				api_path = api_root_path+'api/ae/partieslist?state='+params['state']+'&year='+params['year'];
 				$.getJSON(api_root_path+'api/ae/states', function(data) {
 					var list='';
 					$.each(data, function(i, item) {
-						//$('<option />', {value: item, text:item}).appendTo(s1);
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#state").html(list);
 					mapDataFromSearchToResult('state', params['state'] );
+					dropdownUpdate('state');
 					//createmaps('','','');
-					$.getJSON(api_root_path+'/api/ae/year?state='+$("#state li.selected").attr('data-value'), function(data) {
+					$.getJSON(api_root_path+'/api/ae/year?state='+params['state'], function(data) {
 						var list='';
 						$.each(data, function(i, item) {
-							//$('<option />', {value: item, text:item}).appendTo(s1);
 							list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
 						});	
 						$("#year").html(list);
 						mapDataFromSearchToResult('year', params['year'] );
+						dropdownUpdate('year');
 						createmaps('','','');
 					});
 					
@@ -171,18 +159,46 @@
 				
 				$(".state").show();
 			}
-		}
+			if(params['party']) {
+				$(".parties_td").show();
+				$.getJSON(api_path, function(data) {
+					var list='';
+					$.each(data, function(i, item) {
+						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
+					});	
+					$("#parties").html(list);
+					mapDataFromSearchToResult('parties', params['party'] );
+					dropdownUpdate('parties');
+				});
+			} else {
+				$(".parties_td").hide();
+				party = ' ';
+			}
+			
+		} else {
 		
+			$.getJSON(api_root_path+'api/ge/year', function(data) {
+			
+			var list='';
+			$.each(data, function(i, item) {
+				list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+			});	
+				$("#year").html(list);
+				dropdownUpdate('year');
+				years_list = data;
+			});
+		}		
 		
 		$('#state').on('click','li', function() {
-			console.log('inside year');
+
 			$.getJSON(api_root_path+'api/ae/year?state='+$(this).attr('data-value'), function(data) {
 				var list='';
 				$.each(data, function(i, item) {
-					//$('<option />', {value: item, text:item}).appendTo(s1);
 					list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
 				});	
 				$("#year").html(list);
+				$("#year").removeClass('js-dropdown-active').prev().html('Select');
+				//dropdownUpdate($(this).attr('id'));
 				dropdownUpdate('year');
 				years_list = data;	
 			});
@@ -190,13 +206,13 @@
 		
 		
 		
+		
+		
 		$('input[type=radio][name=election-type]').change(function() {
 			$('#filtervalued').empty();
 			$("#state").html('');
 			$("#year").html('');
-			$('#parties').find('option').remove().end().append('<option value="">Select</option>');
-			//$("select#state").removeAttr('selected').find('option:first').attr('selected', 'selected');
-			//$("select#year").removeAttr('selected').find('option:first').attr('selected', 'selected');
+			
 			$("select#viz_type").removeAttr('selected').find('option:first').attr('selected', 'selected');
 			$("select[name=viz_options]").removeAttr('selected').find('option:first').attr('selected', 'selected');
 			$('.results_div').hide();
@@ -243,28 +259,28 @@
 			var html = getListForVariables(viz, elect_type);
 		
 			$('#viz_results').html(html);
+			$("#viz_results").removeClass('js-dropdown-active').prev().html('Select');
 			dropdownUpdate('viz_results');
+			$(".parties_td").hide();
 		});
 		
 		$("#viz_results").on('click','li',function () {
 			
-		//console.log('test');
 			party = '';
 			var year = $("#year li.selected").attr('data-value');
 			var state = $("#state li.selected").attr('data-value');
-			//console.log(year);
+
 			if($(this).hasClass('parties')) {
 				var api_path='';
 				$(".parties_td").show();
 				//alert($(this).attr('class'));
-				console.log($("input[name='election_type']:checked").val());
+				
 				var elect_type = $("input[name='election-type']:checked").val();
 				if(elect_type == 'AE') {
 					api_path = api_root_path+'api/ae/partieslist?state='+state+'&year='+year;
 				} else {
 					api_path = api_root_path+'api/ge/partieslist?year='+year;
 				}
-				console.log(api_path);
 				//$('#parties').find('option').remove().end().append('<option value="">Select</option>');
 				$.getJSON(api_path, function(data) {
 					var list='';
@@ -273,6 +289,7 @@
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#parties").html(list);
+					$("#parties").removeClass('js-dropdown-active').prev().html('Select');
 					dropdownUpdate('parties');
 				/*var s1 = $("#parties");
 					$.each(data, function(i, item) {
@@ -286,7 +303,7 @@
 			}
 			viz_option = $(this).attr('data-value');
 			dropdownUpdate('viz_results');
-//console.log(viz_option+','+list);			
+
 		});
 		
 		$('#parties').change(function() {
@@ -294,14 +311,44 @@
 		});
 
 		$(".show_viz").on('click',function () {
-			
+			//window.location.href = window.location.href.split('?')[0];
+			window.history.pushState('page2', 'Title', 'result.html');
 			createmaps('','','');
 			return false;
 	
 		});
 	
-		function createmaps(year_from_slider) {
+	
+		$('.clear_viz').on('click',function () {
+			var list = '<li data-value=""><a href="#">Select</a></li>';
+					
+			$(".selectpicker:not(#viz_type)").html(list);
+			//dropdownUpdate('.selectpicker');
+			$('.selectpicker:not(#viz_type)').each(function() {
+				var currentElement = $(this);
+				$("#"+$(this).attr('id')).removeClass('js-dropdown-active').prev().html('Select');
+				dropdownUpdate($(this).attr('id'));
+			});
+			$('.state').hide();
+			$('.parties_td').hide();
+			$('.results_div').hide();
+			
+			$("input[name='election-type'][value=GE]").prop( "checked", true );
+			$.getJSON(api_root_path+'api/ge/year', function(data) {
+	
+			var list='';
+			$.each(data, function(i, item) {
+				list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+			});	
+				$("#year").html(list);
+				dropdownUpdate('year');
+				years_list = data;
+			});
+			$(".error_msg").hide();
+		});
 		
+		function createmaps(year_from_slider) {
+			
 			$('#legend_panel').empty();
 			$('#legend_filter').empty();
 			$('#selectionbox > input:hidden').attr("disabled",true);
@@ -322,14 +369,20 @@
 			} else {
 				year = $("#year li.selected").attr('data-value');
 			}
-			
-			console.log(year);
+
 			var viz_type = $("#viz_type li.selected").attr('data-value');
 			var viz_option = $("#viz_results li.selected").attr('data-value');
 			var year1 = '2000';
 			
+			if(state == undefined || year == undefined || viz_option == undefined || viz_type ==undefined ) {
+				$(".error_msg").show();
+				return false;
+			} else {
+				$(".error_msg").hide();
+			}
+			
 			//var url = "http:localhost:1234\?type=ae&state=Bihar&year=2016&viz=charts&dis=women";
-			var embedd_path= window.location+'embed.html?type='+elect_type+'_'+viz_type+'&state='+state+'&year='+year+'&dis='+viz_option+'&party='+party;
+			var embedd_path= window.location.origin+'/LokDhaba/embed.html?type='+elect_type+'_'+viz_type+'&state='+state+'&year='+year+'&dis='+viz_option+'&party='+party;
 			//alert(embedd_path);
 			$("#embed_url").html(embedd_path);
 		
@@ -338,25 +391,17 @@
 			} else if (viz_type == 'charts' && elect_type == 'GE') {
 				showGeChartsVizualisation(elect_type, state, year, viz_option, party );
 			} else if (viz_type == 'maps' && elect_type == 'AE') {
-				alert('inside map');
+				//alert('inside map');
 				showAeMapVizualisation(elect_type, state, year, viz_option, party);
 			} else if (viz_type == 'charts' && elect_type == 'AE') {
 			//alert();
 				showAeChartsVizualisation(elect_type, state, year, viz_option, party );
 			}
 			
-			
-			//$('.jscolor').ColorPicker({flat: true});
-			/*
 			$("#download").show();
-			$("#side_panel").show();
-			if(viz_type == 'maps') {
-				$(".graph_area").append("<div id='outer_div'><div id='inner_div' class='slider'></div><div>");
-				generateSlider(years_list, year)
-			} else {
-				$( ".slider" ).remove();
-			}*/
-			
+			$("#embed-btn").show();
+			$("#compare_viz").show();
+			$(".edit-icon").show();
 		}
 		
 		
@@ -410,9 +455,16 @@
 
 			
 			var viz_type = $("#viz_type li.selected").attr('data-value');
+			if(state == undefined || year == undefined || viz_option == undefined || viz_type ==undefined ) {
+				$(".error_msg").show();
+				return false;
+			} else {
+				$(".error_msg").hide();
+			}
+			
 			var params = { type:elect_type,state:state, year:year,viz:viz_type,dis:viz_option,party:party };
 			var str = $.param( params );
-			//console.log(str);
+
 			
 			$(this).attr("href", 'result.html?'+str+'&search=1');
 			//var recursiveEncoded = $.param( myObject );
@@ -433,11 +485,6 @@
 			//vars.push(hash[0]);
 			vars[hash[0]] = hash[1];
 		}
-		//console.log(vars);
+
 		return vars;
 	}
-	
-		
-	$(document).ready(function(){
-		
-	})
