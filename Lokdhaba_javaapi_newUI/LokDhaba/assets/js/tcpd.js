@@ -434,8 +434,9 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("font-size","10px")
 	  .text('    ');
 	
-
-	title.append("line")
+var title_l = svg.append("g")
+	.attr("class","title_line_grp");
+	title_l.append("line")
 		.attr("class", "title_line")
 		.attr("x1", 0)
 		.attr("y1", 40)
@@ -460,7 +461,7 @@ function alignTitle() {
 	
 	//console.log(BB1);
 	G2[0].setAttribute("transform", "translate("+ ((BB1.x+BB1.width+5)-BB2.x) + 0 +")")
-	G3[0].setAttribute("x2", ((BB1.x+BB1.width+BB2.width+5)))
+	G3[0].setAttribute("x2", ((BB1.x+BB1.width+BB2.width+(2*margin.left))))
 }
 
 //Creates AE charts based on the selection box values
@@ -1923,7 +1924,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 							.attr("id", "All")
 							.attr("value", "All")
 							.on("click", function (d) { selectAllChkBox(this); 
-							createLegends(svg, legend_labels, color);})
+							createLegends(svg, legend_labels, color_codes, color);})
 							
 				n1_legend.append("span")
 							.text("All");	
@@ -1946,7 +1947,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				n2_legend.append("span")
 							.text(function (d, i) { return getCleanedLegendname(legend_labels[i]); });
 				
-				createLegends(svg, legend_labels, color_codes, color);
+			createLegends(svg, legend_labels, color_codes, color);
 			
 			
 			function createLegends(svg, legend_labels, color_codes, color) {
