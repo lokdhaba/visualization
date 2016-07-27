@@ -1,4 +1,4 @@
-var api_root_path = 'http://localhost:8080/tcpd_ga_nc/';
+var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 $(document).ready(function(){
 		function getUrlVars()
 			{
