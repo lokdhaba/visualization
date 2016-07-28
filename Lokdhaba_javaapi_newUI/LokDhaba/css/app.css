@@ -518,7 +518,10 @@ input[type="radio"]:checked::after {
     padding: 0 10px;
     line-height: 38px;
     background-color: #ffffff; 
-	text-decoration:none;}
+	text-decoration:none;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow: ellipsis}
 	
 	.dropdown.menu .selectpicker li  a {
     height: 30px !important;

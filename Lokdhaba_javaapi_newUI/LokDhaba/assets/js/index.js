@@ -1,5 +1,5 @@
 	//api path for json data
-	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/'
+	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 
 	$(function(){
 		
