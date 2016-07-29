@@ -43,7 +43,7 @@ function create_svg(divid, width, height) {
 	var svg = d3.select("#"+divid).append("div").append("svg")
 				.attr("width",  width  + margin.left + margin.right)
 				.attr("height", height + margin.top  + margin.bottom)
-				.attr("transform", "translate(-" + margin.left + "," +(100) + ")")
+				.attr("transform", "translate(-" + margin.left + "," +(10) + ")")
 				//.attr("width",  width  )
 				//.attr("height", height)
 				.style("font-family", "'Droid Serif', serif")
@@ -2117,7 +2117,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 	var color = d3.map();
 
 	var legend_labels=[];
-
+	
 
 	$.getJSON(csvPath, function(data) {
        
@@ -2182,7 +2182,8 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				.attr("d", path)
 				.on("mouseover", function (d) { showPopover.call(this, d); })
 				.on("click", function (d) { showPopover.call(this, d); })
-				.on("mouseout",  function (d) { removePopovers(); })
+				.on("mouseout",  function (d) { removePopovers(); 
+				})
 
 			var n1_legend = d3.select("#legend_filter")
 							.append("div")
@@ -2193,7 +2194,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 							.attr("id", "All")
 							.attr("value", "All")
 							.on("click", function (d) { selectAllChkBox(this); 
-							createLegends(svg, legend_labels, color_codes, color);})
+							createLegends(svg, legend_labels, color_code_legends, color);})
 							
 				n1_legend.append("span")
 							.text("All");	
@@ -2211,15 +2212,15 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 							.attr("value", function(d) { return d;})
 							.attr("name", function(d) { return 'class_'+d;})
 							.attr("id", function(d) { return d;})
-							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, legend_labels, color_codes, color);})
+							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, legend_labels, color_code_legends, color);})
 							
 				n2_legend.append("span")
 							.text(function (d, i) { return getCleanedLegendname(legend_labels[i]); });
 				
-				createLegends(svg, legend_labels, color_codes, color);
+				createLegends(svg, legend_labels, color_code_legends, color);
 			
 			
-			function createLegends(svg, legend_labels, color_codes, color) {
+			function createLegends(svg, legend_labels, color_code_legends, color) {
 				d3.select(".legend_grp").remove()
 				var ls_w = 20, ls_h = 15;
 					//console.log(ageNames);
@@ -2258,8 +2259,8 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 									if(legend_labels.indexOf(d) == -1) {
 										return color('Others');
 									} else {
-										if(color_codes.get(d)) {
-											return color_codes.get(d);
+										if(color_code_legends[0][d]) {
+											return color_code_legends[0][d];
 										} else {
 											return color(d);
 										}
