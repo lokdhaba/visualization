@@ -19,7 +19,7 @@ var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Vo
 var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA","Turnout":"Turnout","Margin_percent":"Margin","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
 
 var empty_area_color = "#D0D0D0";
-var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
+var color_code_legends = [{'M':'#1f77b4','F':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
 
 //get party color codes
 var color_codes = d3.map();
@@ -44,13 +44,10 @@ function create_svg(divid, width, height) {
 				.attr("width",  width  + margin.left + margin.right)
 				.attr("height", height + margin.top  + margin.bottom)
 				.attr("transform", "translate(-" + margin.left + "," +(10) + ")")
-				//.attr("width",  width  )
-				//.attr("height", height)
 				.style("font-family", "'Droid Serif', serif")
 				.style("color", "#333333")
 				.style("z-index","-1");
-		//svg.append('g').attr('class','svg_title');
-		//svg.append('g').attr('class','svg_legend');
+		
 				
 	return svg;
 }
@@ -110,38 +107,6 @@ function createlegendBorder(svg) {
 	}
 }
 
-//Resizes SVG when the legends takes more space and cuts off. 
-//Its calculated based on the size of title, svg and legends
-function resizeSvg(svg, drawAreaClass) {
-	var	title_dim = svg.selectAll(".title_grp").data([true]) ;
-	var title_area = title_dim[0][0].getBoundingClientRect();
-	
-	var	ldgrp_dim = svg.selectAll(".legend-box").data([true]) ;
-	var ldgrp_area = ldgrp_dim[0][0].getBoundingClientRect();
-
-		
-	var map_dim = svg.selectAll(drawAreaClass).data([true]) ;
-	var map_area = map_dim[0][0].getBoundingClientRect();
-
-	var right_padding = 15;
-	if(drawAreaClass == '.counties') {
-		right_padding = 50;
-	}
-		
-	var	svg_dim =d3.select("svg").data([true]) ;
-	var svg_area = svg_dim[0][0].getBoundingClientRect();
-		
-	var diff_width = (map_area.width + ldgrp_area.width) - svg_area.width
-	var diff_height = (map_area.height + title_area.height) - svg_area.height
-	if(diff_width > 0) {
-		svg.attr('width',svg_area.width+ Math.abs(diff_width)+right_padding)
-	}
-	if(diff_height > 0) {
-		svg.attr('height',svg_area.height+ Math.abs(diff_height)+5)
-	}
-	
-}
-
 //removes special characters from for the given value
 function getCleanedClassname(value) {
 	if(value!='' && isNaN(value)) {
@@ -167,22 +132,7 @@ function getCleanedLegendname(value) {
 //binds constituency data to popup
 function getPopupDetails(popupdata) {
 	if(popupdata != undefined) {
-		/*var keys = Object.keys(popupdata),
-		i, len = keys.length;
-
-		keys.sort();
-		var html = '';
-		//for(var key in popupdata){
-		for (i = 0; i < len; i++) {
-			if(keys[i] !== '' && consDetailsArr.indexOf(keys[i]) > -1) {
-				if((keys[i] == 'Turnout' || keys[i] == 'Margin_percent' || keys[i] == 'NOTA_percent') && popupdata[keys[i]] < 1) {
-					html+= renamedPopupFields[0][keys[i]] +': '+(parseFloat(popupdata[keys[i]])*100).toFixed(2)+'% <br>';
-				} else {
-					//var key1 = key.replace('_', ' ')
-					html+= renamedPopupFields[0][keys[i]] +': '+popupdata[keys[i]]+'<br>';
-				}
-		}
-	}*/
+		
 	var html = '';
 		if(popupdata['ac_name']) {
 			html+= '<b>Seat</b>: '+ popupdata['ac_name'] + ' ('+popupdata['ac_type']+')<br>';
@@ -249,12 +199,8 @@ function writeDownloadLink(){
 function sidefilterGraph(obj) {
 	if($(obj).prop('checked') == true) {
 			$(".class_"+obj.value).show();
-		//d3.selectAll("."+obj.value).transition().duration(300).style("opacity", "1");
-		//d3.selectAll("."+obj.value.replace('class','classleg')).transition().duration(300).style("opacity", "1");
 	} else {
 		$(".class_"+obj.value).hide();
-		//d3.selectAll("."+obj.value).transition().duration(300).style("opacity", "0");
-		//d3.selectAll("."+obj.value.replace('class','classleg')).transition().duration(300).style("opacity", "0");
 	}
 	changeAllChkBox();
 }
@@ -313,17 +259,13 @@ function toggleHeadingEditNew() {
 		var frm = svg.append("foreignObject")
 					.attr('class','edit-title');
 					
-		
-		
         var inp = frm
             .attr("x", BB3.x)
 			.attr("y", BB1.y)
             .style("width", BB3.width)
             .style("height", BB1.height)
            // .append("xhtml:form");
-		   
-		
-                    
+		             
 			inp.append("xhtml:input")
 				.attr("x", BB3.x)
 				.attr("y", BB1.y)
@@ -364,7 +306,6 @@ function toggleHeadingEditNew() {
 //Create title for maps/graphs for specific svg
 function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	
-	
 	var title = svg.append("g")
 	.attr("class","title_grp");
 	
@@ -376,8 +317,6 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("font-size","20px")
 	  .attr("editable","simple")
 	  .text(mheading);
-	 //.call(make_editable, "title");
-	 // .call(edit_content, this);
 	  
 	 title.append("text")
 	  .attr("class", "stitle")
@@ -388,9 +327,6 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("font-style","italic")
       .style("color","#666666")
 	  .text(' '+sheading.replace("_",' '))
-	  //.call(make_editable, "stitle");
-	  
-	  //mtitle.call(make_editable, "title");
 	  
 	  title.append("text")
 	  .attr("class", "b1title")
@@ -399,9 +335,7 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .attr("text-anchor", "middle")
 	  .style("font-size","12px")
 	  .style("color","#333333")
-	  .text(brand1);
-	  
-	  
+	  .text(brand1);	  
 		  
 	title.append("foreignObject")
 		.attr("x", width)
@@ -446,9 +380,7 @@ var title_l = svg.append("g")
 		.style("stroke-width","1px")
 		.style("shape-rendering","crispEdges");
 		
-		alignTitle();
-		
-		
+		alignTitle();		
 }
 
 function alignTitle() {
@@ -462,6 +394,38 @@ function alignTitle() {
 	//console.log(BB1);
 	G2[0].setAttribute("transform", "translate("+ ((BB1.x+BB1.width+5)-BB2.x) + 0 +")")
 	G3[0].setAttribute("x2", ((BB1.x+BB1.width+BB2.width+(2*margin.left))))
+	
+}
+
+//Resize all svg elemnts to avoid overlapping
+function reSizeSvgElements(type) { // type = 'charts' or 'maps'
+	var G1 = document.getElementsByClassName("title_grp")
+	var G2 = document.getElementsByClassName("chart_area")
+	
+	var BB1 = G1[0].getBBox()
+	var BB2 = G2[0].getBBox()
+	
+	G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
+	if(type == 'maps') {
+		G2[1].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
+	}
+	
+	
+	var G3 = document.getElementsByClassName("legend_grp");
+	var BB3 = G3[0].getBBox();
+	G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
+	
+	if(BB1.width < (BB2.width+BB3.width)) {
+		d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+		
+		d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
+	} else {
+		d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
+		d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
+	}
+	
+	d3.select('svg').attr('height', ((BB1.y+BB1.height+BB2.height)))
+	alignTitle();
 }
 
 //Creates AE charts based on the selection box values
@@ -486,12 +450,12 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 			
 		case 'seatshare':
 			filepath = filepath+'ae_seatshares?state='+state;
-			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'year', ' Year of election', 'seat_share %',0);
+			createPartyGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'year', ' Year of election', 'seat_share %',0,'seats');
 			break;
 			
 		case 'voteshare':
 			filepath = filepath+'ae_voteshares?state='+state;
-			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'year', 'Year of election', 'vote_share %',0);	
+			createPartyGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'year', 'Year of election', 'vote_share %',0,'votes');	
 			break;
 		
 		case 'contested_deposit_lost':
@@ -607,12 +571,12 @@ function showGeChartsVizualisation(elect_type, state, year, viz_option,party ) {
 			
 		case 'seatshare':
 			filepath = filepath+'ge_seatshares';
-			createGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', 'General Election '+year,'year', 'Year', 'No of Seats',0);
+			createPartyGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', 'General Election '+year,'year', 'Year', 'No of Seats',0,'seats');
 			break;
 			
 		case 'voteshare':
 			filepath = filepath+'ge_voteshares';
-			createGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', 'General Election '+year,'year', 'Year', 'Percentages',0);	
+			createPartyGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', 'General Election '+year,'year', 'Year', 'Percentages',0,'votes');	
 			break;
 		
 		case 'contested_deposit_lost':
@@ -861,49 +825,6 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		chart_element.selectAll('.axis path')
 					.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
 					
-			/*var new_legend =d3.select("svg").append("g")
-							.attr('class', 'legend_grps')
-							.data(varNames)
-							.enter()
-							.append("g")
-							.attr('class', 'legends');
-							
-				new_legend.append("rect")
-							.attr("rx","50")
-							.attr("ry","100")
-							.attr("width","40")
-							.attr("height","20")
-							.style("fill",function(d, i){
-								if(color_code_legends[0][d]) {
-									return color_code_legends[0][d];
-								} else {
-									return color(d);
-								}
-							});*/
-			
-					
-			/*				
-			var n_legend = d3.select("#legend_panel")				
-							.selectAll(".new_legend")
-							.data(varNames)
-							.enter()
-							.append("div")
-							//.attr("class", "bar-item-color")
-							.attr("class", function(d) { return 'bar-item-color class_'+d;});
-				
-				n_legend.append("div")
-							.attr("class", function(d,i) { return 'legendcolors_'+i+'  color-block';})
-							.style("background-color",function(d, i){
-								if(color_code_legends[0][d]) {
-									return color_code_legends[0][d];
-								} else {
-									return color(d);
-								}
-							});
-				n_legend.append("span")
-							.attr("class", "item-label")
-							.text(function (d) { return getCleanedLegendname(d); });
-			*/
 			var n1_legend = d3.select("#legend_filter")
 							.append("div")
 							.attr("class", "checkbox-wrap");
@@ -1042,27 +963,398 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
+				
+					reSizeSvgElements();
+			}
 					
 					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
+		//remove popoup  
+		function removePopovers () {
+		  $('.popover').each(function() {
+			$(this).remove();
+		  }); 
+		}
+		//Show popup
+		function showPopover (d) {
+		  $(this).popover({
+			title: d.name,
+			placement: 'auto top',
+			container: 'body',
+			trigger: 'manual',
+			html : true,
+			content: function() { 
+			  return col1Head+": " + d.label + 
+					 "<br/>"+col2Head+": " + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
+		  });
+		  $(this).popover('show')
+		}
+		//bind download svg link to the download button on sidepanel
+		d3.select("#download")
+			.on("mouseover", writeDownloadLink);
+	});
+}
+
+
+/*Creates Line graph with grid Specific for seatshare and voteshare 
+	Sample Data format: 
+		year  party  seats/ votes
+		1990  BJP     20
+		1990  INC      7
+	
+	parameters:
+	width = width of the svg area
+	height = height of the svg area
+	path = api path for json data
+	gSeqNo = to differentiate the maps/graphs. if gSeqNo=2, then the div enclosing svg will have id="graph_area2"
+	mheading = mainheading for the maps/graph(line 1 in title)
+	sheading = sub heading for the maps/graph(line 2 in title)
+	xAxishead = Value from JSON that is to be mapped for xaxis
+	col1Head = xaxis label
+	col2Head = yaxis label
+	yscale = to spicify starting value for yaxis
+	shares_name = 'seats' for seatshare and 'votes' for Voteshare
+*/
+function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxisHead, col1Head, col2Head,yscale, shares_name) {
+	
+	var margin = {top: 15, right: 0, bottom: 35, left:55};
+	var divid = create_draw_area(gSeqNo,mheading,sheading);
+	var svg = create_svg(divid, width, height);
+	createMapTitle(svg, width, height, margin, mheading, sheading);
+	
+	width  = width - margin.left - margin.right,
+	height = height  - margin.top  - margin.bottom;
+	
+	var x = d3.scale.ordinal()                    
+			.rangeRoundBands([0, width], 1);
+
+	var y = d3.scale.linear()
+			.rangeRound([height, 0]);
+
+	var xAxis = d3.svg.axis()
+				.scale(x)
+				.orient("bottom")
+				.ticks(5);
+
+	var yAxis = d3.svg.axis()
+				.scale(y)
+				.orient("left")
+				.ticks(5);
+
+	var line = d3.svg.line()
+				.interpolate("linear")
+				.x(function (d) { return x(d.label) + x.rangeBand() / 2; })
+				.y(function (d) { return y(d.value); });
+
+	  // create color range
+	var color = d3.scale.category10();
+	
+	// function for the x grid lines
+	function make_x_axis() {
+		return d3.svg.axis()
+			.scale(x)
+			.orient("bottom")
+			.ticks(5)
+	}
+
+	// function for the y grid lines
+	function make_y_axis() {
+	  return d3.svg.axis()
+			.scale(y)
+			.orient("left")
+			.ticks(5)
+	}
+			
+	d3.json(path, function (error, data) {
+		
+		if(data.length == 0) {
+			svg.append("g")
+			.attr("class","chart_area")
+			.attr("transform", "translate(" + (margin.left) + "," +(100 ) + ")")
+			.append("text").text("No Data Available"); 
+			return false;
+		}
+		var labelVar = xAxisHead;
+		var varNames  = [];
+		data.forEach(function(d) { 		
+			if(varNames.indexOf(d['party']) == -1){
+				varNames.push(d['party']);
+			}
+		});
+		/*
+		var varNames = d3.keys(data[0]).filter(function (key) { return key !== labelVar;});
+		color.domain(varNames);
+
+		var seriesData = varNames.map(function (name) {
+		  return {
+			name: name,
+			values: data.map(function (d) {
+			  return {name: name, label: d[labelVar], value: +d[name]};
+			})
+		  };
+		});
+		*/
+		var seriesData = varNames.map(function (name) {
+		  return {
+			name: name,
+			values: data.filter(function (d) {
+				if(name == d['party']) {
+					return true;
+				} else {
+					return false;
+				}
+			}).map(function (d) {
+				return {name: name, label: d[labelVar], value: d[shares_name]};
+			})
+		  };
+		});
+		x.domain(data.map(function (d) { return d[labelVar]; }));
+		y.domain([yscale,
+		  
+		  (d3.max(seriesData, function (c) { 
+			return d3.max(c.values, function (d) { return d.value; });
+		  }))+10
+		]);
+
+
+		var chart_element = svg.append("g")
+							.attr("class","chart_area")
+							.attr("transform", "translate(" + margin.left + " ," + margin.left +")")
+		// Draw the x Grid lines
+		chart_element.append("g")
+			.attr("class", "grid")
+			.attr("transform", "translate(0," + height + ")")
+			.style("stroke","lightgrey")
+			.style("stroke-opacity","0.7")
+			.style("shape-rendering","crispEdges")
+			.call(make_x_axis()
+				.tickSize(-height, 0, 0)
+				.tickFormat("")
+			)
+
+		// Draw the y Grid lines
+		chart_element.append("g")            
+			.attr("class", "grid")
+			.style("stroke","lightgrey")
+			.style("stroke-opacity","0.7")
+			.style("shape-rendering","crispEdges")
+			.call(make_y_axis()
+				.tickSize(-width, 0, 0)
+				.tickFormat("")
+			)
+		chart_element.append("g")
+			.attr("class", "x axis")
+			.style("font-size", "12px")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis)
+			.append("text")
+			.attr("y", 30)
+			.attr("x", (width/2)-50)
+			.attr("dy", ".71em")
+			.style("text-anchor", "start")
+			.text(col1Head);;
+
+		chart_element.append("g")
+			.attr("class", "y axis")
+			.style("font-size", "12px")
+			.call(yAxis)
+			.append("text")
+			.attr("transform", "rotate(-90)")
+			.attr("x", -((height/2)-50))
+			.attr("y", -50)
+			.attr("dy", ".71em")
+			.style("text-anchor", "end")
+			.style("font-size", "12px")
+			.text(col2Head);
+			
+		//Create lines and circle point 
+		var series = chart_element.selectAll(".series")
+						.data(seriesData)
+						.enter().append("g")
+						.attr("class", "series")
+						.attr("class", function(d, i) { return 'colors_'+i});
+		
+		series.append("path")
+			.attr("class", "line")
+			.attr("class", function(d, i) { return 'colors_'+i+' class_'+getCleanedClassname(d.name);})
+			.attr("d", function (d) { return line(d.values); })
+			.style("stroke", function (d) {
+				if(color_code_legends[0][d.name]) {
+					return color_code_legends[0][d.name];
+				} else {
+					return color(d.name);
+				}
+							
+			})
+			.style("stroke-width", "2px")
+			.style("stroke-dasharray", "5,5")
+			.style("fill", "none")
+			.style("opacity", 1);
+
+		series.selectAll(".point")
+			.data(function (d) { return d.values; })
+			.enter().append("circle")
+			.attr("class", "point")
+			.attr("class", function(d,i) { return 'color_plot class_'+getCleanedClassname(d.name);})
+			.attr("cx", function (d) { return x(d.label) + x.rangeBand()/2; })
+			.attr("cy", function (d) { return y(d.value); })
+			.attr("r", "5px")
+			.style("fill", function (d) { 
+				if(color_code_legends[0][d.name]) {
+					return color_code_legends[0][d.name];
+				} else {
+					return color(d.name);
+				}
+			})
+			.style("stroke", "grey")
+			.style("stroke-width", "1px")
+			.style("opacity", 1)
+			.on("mouseover", function (d) { showPopover.call(this, d); })
+			.on("click", function (d) { showPopover.call(this, d); })
+			.on("mouseout",  function (d) { removePopovers(); })
+				
+		chart_element.selectAll('.axis path')
+					.style({'stroke': "#c0c0c0", 'fill': 'none', 'stroke-width': '2px'});
+			
+			var n1_legend = d3.select("#legend_filter")
+							.append("div")
+							.attr("class", "checkbox-wrap");
+				n1_legend.append("input")
+							.attr("checked", true)
+							.attr("type", "checkbox")
+							.attr("id", "All")
+							.attr("value", "All")
+							.on("click", function (d) { selectAllChkBox(this); 
+							createLegends(svg, varNames, color_code_legends, color);})
+							
+				n1_legend.append("span")
+							.text("All");
+							
+			var n2_legend =	d3.select("#legend_filter")
+							.selectAll(".new_legend_filter")
+							.data(varNames)
+							.enter()
+							.append("div")
+							.attr("class", "checkbox-wrap");
+						
+				n2_legend.append("input")
+							.attr("checked", true)
+							.attr("type", "checkbox")
+							.attr("value", function(d) { return getCleanedClassname(d);})
+							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
+							.attr("id", function(d) { return d;})
+							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, varNames, color_code_legends, color);})
+							
+				n2_legend.append("span")
+							.text(function (d) { return getCleanedLegendname(d); });
+								
+								
+			var legend_colors2 = d3.select("#legend_colors")
+							.selectAll(".new_legend_color")
+							.data(varNames)
+							.enter()
+							.append("div")
+							.attr("class", "checkbox-wrap");
+						
+				legend_colors2.append("input")
+							.attr('name', function(d,i) { return 'colors_'+i;})
+							.attr("class", function(d,i) { return 'colorpicker';})
+							.style("background-color",function(d, i){
+								if(color_code_legends[0][d]) {
+									return color_code_legends[0][d];
+								} else {
+									return color(d);
+								}
+							})
+							.attr('value',function(d, i){
+								if(color_code_legends[0][d]) {
+									return color_code_legends[0][d];
+								} else {
+									return color(d);
+								}
+							});
+							
+					$(".colorpicker").spectrum({
+						change: function(color) {
+							$("."+$(this).attr("name")).css('stroke', color.toHexString());
+							$(".legend"+$(this).attr("name")).css('background-color', color.toHexString());
+							$("."+$(this).attr("name")+" > .color_plot").css('fill', color.toHexString());
+							//console.log($("."+$(this).attr("name")+'.color_plot'));
+							//console.log(color.toHexString()
+							//)
+							}
+					});		
+				
+				
+			createLegends(svg, varNames, color_code_legends, color);
+			function createLegends(svg, varNames, color_code_legends, color) {
+				d3.select(".legend_grp").remove()
+				var ls_w = 20, ls_h = 15;
+					//console.log(varNames);
+					var checkedIds = $("#legend_filter > .checkbox-wrap > input:checkbox:checked").map(function() {
+						if(this.id!='All'){return this.id;}
+					}).get();
+					//console.log(checkedIds);
+
+					var results = [];
+					for (var i = 0; i < varNames.length; i++) {
+						if (checkedIds.indexOf(varNames[i]) !== -1) {
+							results.push(varNames[i]);
+						}
+						
+					}//console.log(results);
 					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
+				var legend = svg.append("g")
+						.attr("class","legend_grp")
+											
+						.selectAll(".legend")
+						.data(results)
+						.enter().append("g")
+						.attr("class", "legend")
+						.style("border","1px solid #000");
+						//.attr("transform", function(d, i) {return "translate(" + i * 110 + ",-25)"; })
+				legend.append("rect")
+					.attr("class", function(d) { return 'class_'+getCleanedClassname(d);})
+					.attr("x", 10)
+					.attr("y", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i)) })
+					.attr("rx",5)
+							.attr("ry",100)
+							.attr("width",25)
+							.attr("height",10)
+					.style("fill",function(d){
+						if(color_code_legends[0][d]) {
+							return color_code_legends[0][d];
+						} else {
+							return color(d);
+						}
+					})
+					.style("opacity", 1)
+					.on("click", function (d, i) {
+                      var lVisibility = this.style.opacity 
+                      filterGraph(getCleanedClassname(d), lVisibility);
+					});
+					 
+				legend.append("text")
+					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
+					.attr("x", 60)
+					.attr("y", function(d, i){ return ((i*ls_h) + (4*ls_h) + (20*i)+10 ) })
+					.style("font-size","12px")
+					.style("opacity", 1)
+					.text(function (d) { return getCleanedLegendname(d); })
+					.on("click", function (d, i) {
+                      var lVisibility = this.style.opacity 
+                      filterGraph(getCleanedClassname(d), lVisibility);
+					});
 					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
+				legend.append("line")
+					.attr("x1", 10)
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("x2", 200)
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.style("stroke","#DADADA")
+					.style("stroke-width","1px")
+					.style("shape-rendering","crispEdges");			
 					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
+					reSizeSvgElements();
 			}
 					
 					
@@ -1247,7 +1539,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 				n2_legend.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return d;})
+							.attr("value", function(d) { return getCleanedClassname(d);})
 							.attr("name", function(d) { return 'class_'+d;})
 							.attr("id", function(d) { return d;})
 							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, ageNames, color_code_legends, color);})
@@ -1358,28 +1650,9 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
-					.style("shape-rendering","crispEdges");
+					.style("shape-rendering","crispEdges");					
 					
-					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
-					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
-					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
+					reSizeSvgElements();
 			}
 		//remove popoup 			
 		function removePopovers () {
@@ -1612,129 +1885,8 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
 					
-					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
-					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
-					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					G2[1].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
+					reSizeSvgElements('maps');
 			}				
-				/*var	graph_dim = svg.selectAll(".counties").data([true]) ;
-				var graph_area = graph_dim[0][0].getBBox();
-				
-				var ls_w = 20, ls_h = 15;
-				 
-				var legend = svg.append("g")
-					.attr("transform", "translate(0," +(title_area.height ) + ")")
-					.attr("class","legend_grp")
-					.selectAll(".legend")
-					.data(ext_color_domain)
-					.enter().append("g")
-					.attr("class", "legend");
-
-				legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width+30)
-					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-					.attr("width", ls_w)
-					.attr("height", ls_h)
-					.style("fill", function(d){ return color(d); })
-					.style("opacity", 1)
-					.on("click", function (d, i) {
-                      // register on click event
-                     // console.log ('opacity:' + this.style.opacity  );
-                      var lVisibility = this.style.opacity 
-                     // console.log ('lVisibility:' + lVisibility  );
-                      filterGraph(d, lVisibility);
-					});
-					 
-				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+d;})
-					.attr("x", graph_area.x + graph_area.width + 60)
-					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-					.style("font-size","12px")
-					.style("opacity", 1)
-					.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); })
-					.on("click", function (d, i) {
-                      // register on click event
-                     // console.log ('opacity:' + this.style.opacity  );
-                      var lVisibility = this.style.opacity 
-                     // console.log ('lVisibility:' + lVisibility  );
-                      filterGraph(d, lVisibility);
-					});
-				createlegendBorder(svg)*/
-				
-				
-				
-							
-							
-				/*	
-				
-				d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-
-							.attr('class','legend_list')
-							.attr('height', height)
-							.append('li')
-							.append('label')
-							.attr('for','All')
-							.text('All')
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("id", "All")
-							.on("change", function (d) {checkboxToggle(this)});
-							
-				
-							/*
-				var legend1 = d3.select("#filtervalued")
-							.append('div')
-							.append('ul')
-							.attr('class','legend_list')
-							.attr('height', height);
-
-				var keys = legend1.selectAll('li.key')
-							.data(ext_color_domain)
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+d;})
-							.text(function(d, i){  return legend_labels[i]; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+d;})
-							.attr("name", function(d) { return 'class_'+d;})
-							.attr("id", function(d) { return 'class_'+d;})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});
-							
-							/*var zoom = d3.behavior.zoom()
-							.on("zoom",function() {
-								g.attr("transform","translate("+ 
-									d3.event.translate.join(",")+")scale("+d3.event.scale+")");
-								g.selectAll("path")  
-									.transition().duration(300).attr("d", path.projection(projection)); 
-						});
-
-						g.call(zoom)*/
-				//resizeSvg(svg, '.counties');
 			
 				function getClassNameForTurnout(d) {
 					//d = 0.0556; 0,1,3,5           <1
@@ -1939,7 +2091,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				n2_legend.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return d;})
+							.attr("value", function(d) { return getCleanedClassname(d);})
 							.attr("name", function(d) { return 'class_'+d;})
 							.attr("id", function(d) { return d;})
 							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, legend_labels, color_codes, color);})
@@ -2014,26 +2166,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 					.style("shape-rendering","crispEdges");
 					
 					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
-					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
-					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					G2[1].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
+					reSizeSvgElements('maps');
 			}
 			
 				
@@ -2086,7 +2219,6 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 	});
 	
 }
-
 
 /*Creates Category maps 
 	parameters:
@@ -2209,7 +2341,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 				n2_legend.append("input")
 							.attr("checked", true)
 							.attr("type", "checkbox")
-							.attr("value", function(d) { return d;})
+							.attr("value", function(d) { return getCleanedClassname(d);})
 							.attr("name", function(d) { return 'class_'+d;})
 							.attr("id", function(d) { return d;})
 							.on("click", function (d) { sidefilterGraph(this); createLegends(svg, legend_labels, color_code_legends, color);})
@@ -2282,169 +2414,9 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
-					
-					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
-					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
-					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					G2[1].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
-					//d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+BB3.width+ margin.left)) )
-					
-					
-					//d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+				
+					reSizeSvgElements('maps');
 			}
-			
-			/*
-			if(legend_labels.length > 0) {
-				var n_legend = d3.select("#legend_panel")
-								
-								.selectAll(".new_legend")
-								.data(legend_labels)
-								.enter()
-								.append("div")
-								.attr("class", function(d) { return 'bar-item-color class_'+d;});
-				
-						n_legend.append("div")
-								.attr("class", "color-block")
-								.style("background-color", function(d, i) { 
-										if(color_code_legends[0][d]) {
-											return color_code_legends[0][d];
-										} else {
-											return color(d);
-										}
-								});
-
-						n_legend.append("span")
-								.attr("class", "item-label")
-								.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); });
-				
-				var n1_legend = d3.select("#legend_filter")
-									.append("div")
-									.attr("class", "checkbox-wrap");
-						n1_legend.append("input")
-									.attr("checked", true)
-									.attr("type", "checkbox")
-									.attr("id", "All")
-									.attr("value", "All")
-									.on("click", function (d) { selectAllChkBox(this); })
-						n1_legend.append("span")
-									.text("All");
-									
-				var n2_legend =	d3.select("#legend_filter")
-									.selectAll(".new_legend_filter")
-									.data(legend_labels)
-									.enter()
-									.append("div")
-									.attr("class", "checkbox-wrap");
-								
-						n2_legend.append("input")
-									.attr("checked", true)
-									.attr("type", "checkbox")
-									.attr("value", function(d) { return d;})
-									.attr("name", function(d) { return 'class_'+d;})
-									.attr("id", function(d) { return d;})
-									.on("click", function (d) { sidefilterGraph(this); })
-						n2_legend.append("span")
-									.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); });
-/*
-				var	graph_dim = svg.selectAll(".counties").data([true]) ;
-				var graph_area = graph_dim[0][0].getBBox();
-				
-				var ls_w = 20, ls_h = 15;
-				 
-				var legend = svg.append("g")
-					.attr("transform", "translate(0," +(title_area.height ) + ")")
-					.attr("class","legend_grp")
-					.selectAll(".legend")
-					.data(legend_labels)
-					.enter().append("g")
-					.attr("class", "legend");
-
-				legend.append("rect")
-					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-					.attr("x", graph_area.x + graph_area.width+30)
-					.attr("y", function(d, i){ return (graph_area.y + title_area.y + (i*ls_h) + 2*ls_h) + (2*i);})
-					.attr("width", ls_w)
-					.attr("height", ls_h)
-					.style("fill", function(d, i) { 
-							if(color_code_legends[0][d]) {
-								return color_code_legends[0][d];
-							} else {
-								return color(d);
-							}
-					})
-					.style("opacity", 1)
-					.on("click", function (d, i) {
-						  var lVisibility = this.style.opacity 
-						  filterGraph(getCleanedClassname(d), lVisibility);
-					   });
-				legend.append("text")
-					.attr("class", function(d) { return 'classleg_'+getCleanedClassname(d);})
-					.attr("x", graph_area.x + graph_area.width + 60)
-					.attr("y", function(d, i){ return (graph_area.y + (i*ls_h) + 2*ls_h) + (2*i) + ls_h-2;})
-					.style("font-size","12px")
-					.style("opacity", 1)
-					.text(function(d, i){ return getCleanedLegendname(legend_labels[i]); })
-					.on("click", function (d, i) {
-						  var lVisibility = this.style.opacity 
-						  filterGraph(getCleanedClassname(d), lVisibility);
-					});
-					
-				createlegendBorder(svg);
-				d3.select("#filtervalued")
-								.append('div')
-								.append('ul')
-
-								.attr('class','legend_list')
-								.attr('height', height)
-								.append('li')
-								.append('label')
-								.attr('for','All')
-								.text('All')
-								.append("input")
-								.attr("checked", true)
-								.attr("type", "checkbox")
-								.attr("id", "All")
-								.on("change", function (d) {checkboxToggle(this)});
-					
-				var legend1 = d3.select("#filtervalued")
-								.append('div')
-								.append('ul')
-								.attr('class','legend_list')
-								.attr('height', height);
-
-				var keys = legend1.selectAll('li.key')
-							.data(legend_labels)
-							.enter().append('li')
-							.append('label')
-							.attr('for',function(d) { return 'class_'+getCleanedClassname(d);})
-							.text(function(d, i){  return legend_labels[i]; })
-							.append("input")
-							.attr("checked", true)
-							.attr("type", "checkbox")
-							.attr("value", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("name", function(d) { return 'class_'+getCleanedClassname(d);})
-							.attr("id", function(d) { return 'class_'+getCleanedClassname(d);})
-							.on("click", function (d, i) {
-								sidefilterGraph(this);
-							});
-				resizeSvg(svg, '.counties');
-			}*/
 			//remove popoup 
 			function removePopovers () {
 			  $('.popover').each(function() {
@@ -2648,30 +2620,8 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
-					
-					
-					var G1 = document.getElementsByClassName("title_grp")
-					var G2 = document.getElementsByClassName("chart_area")
-					
-					var BB1 = G1[0].getBBox()
-					var BB2 = G2[0].getBBox()
-					
-					G2[0].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					G2[1].setAttribute("transform", "translate("+ margin.left + " " + ((BB1.y+BB1.height)-BB2.y) + ")")
-					
-					var G3 = document.getElementsByClassName("legend_grp");
-					var BB3 = G3[0].getBBox();
-					G3[0].setAttribute("transform", "translate(" + ((BB2.x+BB2.width+margin.left +20 )-BB3.x) + " " + ((BB1.y+BB1.height)-BB3.y) + ")")
-					
-					if(BB1.width < (BB2.width+BB3.width)) {
-						d3.select('svg').attr('width', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ (2*margin.left))) )
-					} else {
-						d3.select('svg').attr('width', ((BB1.x+BB1.width+(2*margin.left))) )
-						d3.select('.title_line').attr('x2', ((BB1.x+BB1.width+ (2*margin.left))) )
-					}
-					
-					//d3.select('.title_line').attr('x2', ((BB2.x+BB2.width+BB3.width+ margin.left)) )
+										
+					reSizeSvgElements('maps');
 			}
 			
 		

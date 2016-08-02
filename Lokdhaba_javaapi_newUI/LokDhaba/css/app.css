@@ -969,3 +969,22 @@ path {
   stroke-linejoin: round;
 }
 a {text-decoration:none!important;}
+
+
+.svg-container {
+ position: relative;
+ width: 100%;
+ padding-bottom: 10%; /* depends on svg ratio, for my zebra height/width = 1.2 so padding-bottom = 50% * 1.2 = 60% */
+ 
+ vertical-align: middle; /* top | middle | bottom ... do what you want */
+}
+.svg-content-responsive {
+    display: block;
+
+  top: 0;
+  left: 0;
+ 
+}
+svg:not(:root) {
+    overflow: overlay !important;
+}
