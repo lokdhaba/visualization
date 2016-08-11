@@ -27,7 +27,63 @@ public class AESeatShares implements Serializable {
 	@JsonIgnore
 	private String state;
 	private int year;
-	private int bjp;
+	private String party;
+	private int sa_no;
+	private int seats;
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+		
+	public String getParty() {
+		return party;
+	}
+
+	public void setParty(String party) {
+		this.party = party;
+	}
+	public int getSeats() {
+		return seats;
+	}
+
+	public void setSeats(int seats) {
+		this.seats = seats;
+	}
+	
+	public int getSa_no() {
+		return sa_no;
+	}
+	public void setSa_no(int sa_no) {
+		this.sa_no = sa_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + sa_no;
+	}
+	public void setYear(int year) {
+		this.year = year;
+	}
+	
+	
+	@Override
+	public String toString() {
+		return "AESeatShares [id=" + id + ", state=" + state + ", year=" + year +", party ="+ party + ", seats ="+ seats +"]";
+	}
+	
+	/*private int bjp;
 	private int jdu;
 	private int rjd;
 	private int inc;
@@ -102,5 +158,5 @@ public class AESeatShares implements Serializable {
 		return "AESeatShares [id=" + id + ", state=" + state + ", year=" + year + ", bjp=" + bjp + ", jdu=" + jdu
 				+ ", rjd=" + rjd + ", inc=" + inc + ", ind=" + ind + "]";
 	}
-
+*/
 }

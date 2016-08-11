@@ -24,6 +24,8 @@ public class GEPartiesContsts implements Serializable {
 	@JsonIgnore
 	private String id;
 	private int year;
+	@JsonIgnore
+	private int ga_no;
 	private int parties_contested;
 	private int parties_represented;
 
@@ -35,8 +37,15 @@ public class GEPartiesContsts implements Serializable {
 		this.id = id;
 	}
 
-	public int getYear() {
-		return year;
+	public int getGa_no() {
+		return ga_no;
+	}
+	public void setGa_no(int ga_no) {
+		this.ga_no = ga_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + ga_no;
 	}
 
 	public void setYear(int year) {

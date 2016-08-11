@@ -27,7 +27,61 @@ public class AEVoteShares implements Serializable {
 	@JsonIgnore
 	private String state;
 	private int year;
-	private int bjp;
+	private int sa_no;
+	private String party;
+	private int votes;
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public int getSa_no() {
+		return sa_no;
+	}
+	public void setSa_no(int sa_no) {
+		this.sa_no = sa_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + sa_no;
+	}
+	public void setYear(int year) {
+		this.year = year;
+	}
+	
+	public String getParty() {
+		return party;
+	}
+
+	public void setParty(String party) {
+		this.party = party;
+	}
+	public int getVotes() {
+		return votes;
+	}
+
+	public void setVotes(int votes) {
+		this.votes = votes;
+	}
+	
+	@Override
+	public String toString() {
+		return "AEVoteShares [id=" + id + ", state=" + state + ", year=" + year + ", party ="+ party + ", votes ="+ votes +"]";
+	}
+	/*
+	private int BJP;
 	private int jdu;
 	private int rjd;
 	private int inc;
@@ -51,10 +105,10 @@ public class AEVoteShares implements Serializable {
 		this.year = year;
 	}
 	public int getBjp() {
-		return bjp;
+		return BJP;
 	}
-	public void setBjp(int bjp) {
-		this.bjp = bjp;
+	public void setBjp(int BJP) {
+		this.BJP = BJP;
 	}
 	public int getJdu() {
 		return jdu;
@@ -82,9 +136,9 @@ public class AEVoteShares implements Serializable {
 	}
 	@Override
 	public String toString() {
-		return "AEVoteShares [id=" + id + ", state=" + state + ", year=" + year + ", bjp=" + bjp + ", jdu=" + jdu
+		return "AEVoteShares [id=" + id + ", state=" + state + ", year=" + year + ", BJP=" + BJP + ", jdu=" + jdu
 				+ ", rjd=" + rjd + ", inc=" + inc + ", ind=" + ind + "]";
 	}
-	
+	*/
 	
 }

@@ -26,6 +26,8 @@ public class GEDpstLossContsts implements Serializable {
 	private int deposit_saved;
 	private int total_candidates;
 	private int year;
+	@JsonIgnore
+	private int ga_no;
 
 	public String getId() {
 		return id;
@@ -51,8 +53,15 @@ public class GEDpstLossContsts implements Serializable {
 		this.total_candidates = total_candidates;
 	}
 
-	public int getYear() {
-		return year;
+	public int getGa_no() {
+		return ga_no;
+	}
+	public void setGa_no(int ga_no) {
+		this.ga_no = ga_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + ga_no;
 	}
 
 	public void setYear(int year) {

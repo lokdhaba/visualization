@@ -27,6 +27,8 @@ public class GEVotrTurnouts implements Serializable {
 	@JsonIgnore
 	private String state;
 	private int year;
+	@JsonIgnore
+	private int ga_no;
 	private int male;
 	private int female;
 	private int total;
@@ -48,8 +50,15 @@ public class GEVotrTurnouts implements Serializable {
 		this.state = state;
 	}
 
-	public int getYear() {
-		return year;
+	public int getGa_no() {
+		return ga_no;
+	}
+	public void setGa_no(int ga_no) {
+		this.ga_no = ga_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + ga_no;
 	}
 
 	public void setYear(int year) {

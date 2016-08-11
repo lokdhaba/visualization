@@ -43,6 +43,8 @@ public class AEMaps implements Serializable{
 	private int voters;
 	private int votes1;
 	private int year;
+	private int sa_no;
+	
 	public String getId() {
 		return id;
 	}
@@ -175,8 +177,16 @@ public class AEMaps implements Serializable{
 	public void setVotes1(int votes1) {
 		this.votes1 = votes1;
 	}
-	public int getYear() {
-		return year;
+	
+	public int getSa_no() {
+		return sa_no;
+	}
+	public void setSa_no(int sa_no) {
+		this.sa_no = sa_no;
+	}
+	
+	public String getYear() {
+		return year + "#" +sa_no;
 	}
 	public void setYear(int year) {
 		this.year = year;
@@ -188,8 +198,8 @@ public class AEMaps implements Serializable{
 				+ ", n_cand=" + n_cand + ", nota_percent=" + nota_percent + ", party1=" + party1 + ", position="
 				+ position + ", religion=" + religion + ", runner=" + runner + ", runner_party=" + runner_party
 				+ ", runner_sex=" + runner_sex + ", sex1=" + sex1 + ", state=" + state + ", turnout=" + turnout
-				+ ", vote_percent=" + vote_percent + ", voters=" + voters + ", votes1=" + votes1 + ", year=" + year
-				+ "]";
+				+ ", vote_percent=" + vote_percent + ", voters=" + voters + ", votes1=" + votes1 + ", year=" + year +"-"+sa_no
+				+"]";
 	}
 	
 }

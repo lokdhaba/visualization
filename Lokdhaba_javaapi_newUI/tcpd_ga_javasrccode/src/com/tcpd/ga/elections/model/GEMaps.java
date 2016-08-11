@@ -64,6 +64,7 @@ public class GEMaps implements Serializable {
 	private int votes1;
 	private String votes_rejected;
 	private int year;
+	private int ga_no;
 	private int year_dup;
 	private String yob;
 
@@ -419,6 +420,14 @@ public class GEMaps implements Serializable {
 		this.votes_rejected = votes_rejected;
 	}
 
+	public int getGa_no() {
+		return ga_no;
+	}
+	public void setGa_no(int ga_no) {
+		this.ga_no = ga_no;
+	}
+	
+	
 	public int getYear() {
 		return year;
 	}
@@ -457,7 +466,7 @@ public class GEMaps implements Serializable {
 				+ ", postal_voters=" + postal_voters + ", rel=" + rel + ", serial_no=" + serial_no + ", sex1=" + sex1
 				+ ", state_name=" + state_name + ", sub_region=" + sub_region + ", turnout=" + turnout
 				+ ", urban_percent=" + urban_percent + ", urban_type=" + urban_type + ", valid_votes=" + valid_votes
-				+ ", voters=" + voters + ", votes1=" + votes1 + ", votes_rejected=" + votes_rejected + ", year=" + year
+				+ ", voters=" + voters + ", votes1=" + votes1 + ", votes_rejected=" + votes_rejected + ", ga_no=" + ga_no + ", year=" + year
 				+ ", year_dup=" + year_dup + ", yob=" + yob + "]";
 	}
 

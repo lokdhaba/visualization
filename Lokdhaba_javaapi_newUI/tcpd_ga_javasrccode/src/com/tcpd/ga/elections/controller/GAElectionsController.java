@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ import com.tcpd.ga.elections.dao.AEMapsRepository;
 import com.tcpd.ga.elections.dao.GEMapsRepository;
 import com.tcpd.ga.elections.model.AEDpstLossContst;
 import com.tcpd.ga.elections.model.AEMaps;
+import com.tcpd.ga.elections.model.AEPartys;
 import com.tcpd.ga.elections.model.AEPartiesContst;
 import com.tcpd.ga.elections.model.AESeatShares;
 import com.tcpd.ga.elections.model.AEVoteShares;
@@ -137,21 +139,21 @@ public class GAElectionsController {
 
 	// @RequestParam("title")String title
 	@RequestMapping(value = "/ae/year", method = RequestMethod.GET, produces = APPLICATION_JSON)
-	public @ResponseBody List<AEMaps> getUniqueAEMapYears(@RequestParam("state") String state) {
+	public @ResponseBody List<String> getUniqueAEMapYears(@RequestParam("state") String state) {
 		logger.info("Inside getUniqueAEMapYears() method of controller...");
 
-		List<AEMaps> aeUniqYrs = aeRepository.getUniqueAEMapYears(state);
+		List<String> aeUniqYrs = aeRepository.getUniqueAEMapYears(state);
 
-		logger.info("========= AE Maps aeUniqYrs size.... " + aeUniqYrs.size());
+		logger.info("========= AE Maps aeUniqYrs size.... " + (aeUniqYrs).size());
 		return aeUniqYrs;
 	}
 
 	@RequestMapping(value = "/ae/elections", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getUniqueAEMapStateYears(@RequestParam("state") String state,
-			@RequestParam("year") int year) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no) {
 		logger.info("Inside getUniqueAEMapStateYears() method of controller...");
 
-		List<AEMaps> aeStatsYrs = aeRepository.getAEMapStatsYears(state, year);
+		List<AEMaps> aeStatsYrs = aeRepository.getAEMapStatsYears(state, year, sa_no);
 
 		logger.info("========= UniqueAEMapStateYears size.... " + aeStatsYrs.size());
 		return aeStatsYrs;
@@ -159,21 +161,32 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/elections/position", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getAEMapPositionsForStatsYears(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("position") int position) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("position") int position) {
 		logger.info("Inside getAEMapPositionsForStatsYears() method of controller...");
 
-		List<AEMaps> aePstns4StatsYrs = aeRepository.getAEMapPositionsForStatsYears(state, year, position);
+		List<AEMaps> aePstns4StatsYrs = aeRepository.getAEMapPositionsForStatsYears(state, year, sa_no, position);
 
 		logger.info("========= getAEMapPositionsForStatsYears size.... " + aePstns4StatsYrs.size());
 		return aePstns4StatsYrs;
 	}
+	
+	@RequestMapping(value = "/ae/elections/partypositions", method = RequestMethod.GET, produces = APPLICATION_JSON)
+	public @ResponseBody List<AEPartys> getAEMapPartyPositionsForStatsYears(@RequestParam("state") String state,
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("party1") String party1) {
+		logger.info("Inside getAEMapPositionsForStatsYears() method of controller...");
+
+		List<AEPartys> aePrtyPstns4StatsYrs = aeRepository.getAEMapPartyPositionsForStatsYears(state, year,sa_no, party1);
+
+		logger.info("========= getAEMapPartyPositionsForStatsYears size.... " + aePrtyPstns4StatsYrs.size());
+		return aePrtyPstns4StatsYrs;
+	}
 
 	@RequestMapping(value = "/ae/partieslist", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getUnqListOfAEMapPartiesWithSort(@RequestParam("state") String state,
-			@RequestParam("year") int year) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no) {
 		logger.info("Inside getAEMapPositionsForStatsYears() method of controller...");
 
-		List<AEMaps> aeUnqPrtsByStatYr = aeRepository.getUniqueAEMapParties(state, year);
+		List<AEMaps> aeUnqPrtsByStatYr = aeRepository.getUniqueAEMapParties(state, year, sa_no);
 
 		logger.info("========= aeUnqPrtsByStatYr size.... " + aeUnqPrtsByStatYr.size());
 		return aeUnqPrtsByStatYr;
@@ -181,11 +194,11 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/parties", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEPartiesResponseVO> getUnqListOfAEMapPartiesWithLimit(
-			@RequestParam("state") String state, @RequestParam("year") int year, @RequestParam("limit") int limit) {
+			@RequestParam("state") String state, @RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("limit") int limit) {
 		logger.info("Inside getAEMapPositionsForStatsYears() method of controller...");
 
-		List<AEMaps> aeUnqPrtsWthSort = aeRepository.findUnqListOfAEMapPartiesWithSort(state, year, limit);
-		List<AEPartiesResponseVO> aePartiesResponseVOs = new ArrayList<>();
+		List<AEPartiesResponseVO> aeUnqPrtsWthSort = aeRepository.findUnqListOfAEMapPartiesWithSort(state, year, sa_no, limit);
+		/*List<AEPartiesResponseVO> aePartiesResponseVOs = new ArrayList<>();
 		Map<String, Integer> partiesCount = new HashMap<String, Integer>();
 
 		for (AEMaps aeMaps : aeUnqPrtsWthSort) {
@@ -205,15 +218,16 @@ public class GAElectionsController {
 		}
 
 		logger.info("========= getAEMapPositionsForStatsYears size.... " + aePartiesResponseVOs.size());
-		return aePartiesResponseVOs;
+		return aePartiesResponseVOs;*/
+		return aeUnqPrtsWthSort;
 	}
 
 	@RequestMapping(value = "/ae/elections/gender", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getAEMapsBasedOnGendrStateYear(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("searchvalue") List<String> genders) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("searchvalue") List<String> genders) {
 		logger.info("Inside getAEMapsBasedOnGendrStateYear() method of controller...");
 
-		List<AEMaps> aeGndrStateYrs = aeRepository.findAEMapsBasedOnGendrStateYear(state, year, genders);
+		List<AEMaps> aeGndrStateYrs = aeRepository.findAEMapsBasedOnGendrStateYear(state, year, sa_no, genders);
 
 		logger.info("========= AEMapsBasedOnGendrStateYear size.... " + aeGndrStateYrs.size());
 		return aeGndrStateYrs;
@@ -221,10 +235,10 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/elections/religion", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getAEMapsBasedOnRlgnStateYear(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("searchvalue") List<String> rlgns) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("searchvalue") List<String> rlgns) {
 		logger.info("Inside getAEMapsBasedOnRlgnStateYear() method of controller...");
 
-		List<AEMaps> aeRlgnStateYrs = aeRepository.findAEMapsBasedOnRlgnStateYear(state, year, rlgns);
+		List<AEMaps> aeRlgnStateYrs = aeRepository.findAEMapsBasedOnRlgnStateYear(state, year, sa_no, rlgns);
 
 		logger.info("========= AEMapsBasedOnRlgnStateYear size.... " + aeRlgnStateYrs.size());
 		return aeRlgnStateYrs;
@@ -232,10 +246,10 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/elections/community", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getAEMapsBasedOnComuntyStateYear(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("searchvalue") List<String> communities) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("searchvalue") List<String> communities) {
 		logger.info("Inside getAEMapsBasedOnComuntyStateYear() method of controller...");
 
-		List<AEMaps> aeCmmntyStateYrs = aeRepository.findAEMapsBasedOnCmmntyStateYear(state, year, communities);
+		List<AEMaps> aeCmmntyStateYrs = aeRepository.findAEMapsBasedOnCmmntyStateYear(state, year, sa_no, communities);
 
 		logger.info("========= AEMapsBasedOnComuntyStateYear size.... " + aeCmmntyStateYrs.size());
 		return aeCmmntyStateYrs;
@@ -243,10 +257,10 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/elections/winners", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getAEMapsBasedOnWinnrsStateYear(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("searchvalue") List<String> winners) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("searchvalue") List<String> winners) {
 		logger.info("Inside getAEMapsBasedOnWnnrsStateYear() method of controller...");
 
-		List<AEMaps> aeWnnrsStateYrs = aeRepository.findAEMapsBasedOnWnnrsStateYear(state, year, winners);
+		List<AEMaps> aeWnnrsStateYrs = aeRepository.findAEMapsBasedOnWnnrsStateYear(state, year, sa_no, winners);
 
 		logger.info("========= AEMapsBasedOnWnnrsStateYear size.... " + aeWnnrsStateYrs.size());
 		return aeWnnrsStateYrs;
@@ -254,10 +268,10 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ae/elections/filter", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEMaps> getUniqueDataBasedOnAnyAEMapField(@RequestParam("state") String state,
-			@RequestParam("year") int year, @RequestParam("filtervalue") String filterField) {
+			@RequestParam("year") int year, @RequestParam("sa_no") int sa_no, @RequestParam("filtervalue") String filterField) {
 		logger.info("Inside getUniqueDataBasedOnAnyAEMapField() method of controller...");
 
-		List<AEMaps> aeWnnrsStateYrs = aeRepository.getUniqueDataBasedOnAnyAEMapField(state, year, filterField);
+		List<AEMaps> aeWnnrsStateYrs = aeRepository.getUniqueDataBasedOnAnyAEMapField(state, year, sa_no, filterField);
 
 		logger.info("========= UniqueDataBasedOnAnyAEMapField size.... " + aeWnnrsStateYrs.size());
 		return aeWnnrsStateYrs;
@@ -342,30 +356,30 @@ public class GAElectionsController {
 	}
 
 	@RequestMapping(value = "/ge/year", method = RequestMethod.GET, produces = APPLICATION_JSON)
-	public @ResponseBody List<GEMaps> getUniqueGEMapYears() {
+	public @ResponseBody List<String> getUniqueGEMapYears() {
 		logger.info("Inside getUniqueGEMapYears() method of controller...");
 
-		List<GEMaps> geMapsUnqYrs = geRepository.getUniqueGEMapYears();
+		List<String> geMapsUnqYrs = geRepository.getUniqueGEMapYears();
 
 		logger.info("========= GE MapsUnqYrs size.... " + geMapsUnqYrs.size());
 		return geMapsUnqYrs;
 	}
 
 	@RequestMapping(value = "/ge/elections", method = RequestMethod.GET, produces = APPLICATION_JSON)
-	public @ResponseBody List<GEMaps> getAllGEMapsByYear(@RequestParam int year) {
+	public @ResponseBody List<GEMaps> getAllGEMapsByYear(@RequestParam int year, @RequestParam int ga_no) {
 		logger.info("Inside getAllGEMapsByYear() method of controller...");
 
-		List<GEMaps> geMapsUnqYrs = geRepository.findGEMapByYear(year);
+		List<GEMaps> geMapsUnqYrs = geRepository.findGEMapByYear(year, ga_no);
 
 		logger.info("========= GE MapsUnqYrs size.... " + geMapsUnqYrs.size());
 		return geMapsUnqYrs;
 	}
 
 	@RequestMapping(value = "/ge/partieslist", method = RequestMethod.GET, produces = APPLICATION_JSON)
-	public @ResponseBody List<GEMaps> getUnqListOfGEMapPartiesByYr(@RequestParam("year") int year) {
+	public @ResponseBody List<GEMaps> getUnqListOfGEMapPartiesByYr(@RequestParam("year") int year, @RequestParam("ga_no") int ga_no) {
 		logger.info("Inside getUnqListOfGEMapPartiesByYr() method of controller...");
 
-		List<GEMaps> geUnqPrtsByYr = geRepository.findUniqueGEMapPartiesYr(year);
+		List<GEMaps> geUnqPrtsByYr = geRepository.findUniqueGEMapPartiesYr(year, ga_no);
 
 		logger.info("========= UnqListOfGEMapPartiesByYr size.... " + geUnqPrtsByYr.size());
 		return geUnqPrtsByYr;
@@ -373,21 +387,21 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ge/elections/parties", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<GEMaps> getAllGEMapsByYearPrty(@RequestParam("party") String party,
-			@RequestParam("year") int year) {
+			@RequestParam("year") int year, @RequestParam("ga_no") int ga_no) {
 		logger.info("Inside getAllGEMapsByYearPrty() method of controller...");
 
-		List<GEMaps> geMapsUnqYrs = geRepository.findGEMapByPartyYear(party, year);
+		List<GEMaps> geMapsUnqYrs = geRepository.findGEMapByPartyYear(party, year, ga_no);
 
 		logger.info("========= GE MapsUnqYrs size.... " + geMapsUnqYrs.size());
 		return geMapsUnqYrs;
 	}
 
 	@RequestMapping(value = "/ge/elections/position", method = RequestMethod.GET, produces = APPLICATION_JSON)
-	public @ResponseBody List<GEMaps> getAllGEMapsByYearPosition(@RequestParam("year") int year,
+	public @ResponseBody List<GEMaps> getAllGEMapsByYearPosition(@RequestParam("year") int year, @RequestParam("ga_no") int ga_no,
 			@RequestParam("position") int position) {
 		logger.info("Inside getAllGEMapsByYearPosition() method of controller...");
 
-		List<GEMaps> geMapsUnqYrPosition = geRepository.findGEMapPositionsForYears(year, position);
+		List<GEMaps> geMapsUnqYrPosition = geRepository.findGEMapPositionsForYears(year, ga_no, position);
 
 		logger.info("========= GE MapsUnqYrs size.... " + geMapsUnqYrPosition.size());
 		return geMapsUnqYrPosition;
@@ -398,11 +412,11 @@ public class GAElectionsController {
 
 	@RequestMapping(value = "/ge/parties", method = RequestMethod.GET, produces = APPLICATION_JSON)
 	public @ResponseBody List<AEPartiesResponseVO> getUnqListOfGEMapPartiesWithLimit(@RequestParam("year") int year,
-			@RequestParam("limit") int limit) {
+			@RequestParam("ga_no") int ga_no,@RequestParam("limit") int limit) {
 		logger.info("Inside getUnqListOfGEMapPartiesWithLimit() method of controller...");
 
-		List<GEMaps> aeUnqPrtsWthSort = geRepository.findUnqListOfGEPartiesByYearWithLimit(year, limit);
-		List<AEPartiesResponseVO> aePartiesResponseVOs = new ArrayList<>();
+		List<AEPartiesResponseVO> aeUnqPrtsWthSort = geRepository.findUnqListOfGEPartiesByYearWithLimit(year, ga_no, limit);
+		/*List<AEPartiesResponseVO> aePartiesResponseVOs = new ArrayList<>();
 		Map<String, Integer> partiesCount = new HashMap<String, Integer>();
 
 		for (GEMaps geMaps : aeUnqPrtsWthSort) {
@@ -420,9 +434,10 @@ public class GAElectionsController {
 			partiesResponseVO.setCount(entry.getValue());
 			aePartiesResponseVOs.add(partiesResponseVO);
 		}
-
 		logger.info("========= getUnqListOfGEMapPartiesWithLimit size.... " + aePartiesResponseVOs.size());
-		return aePartiesResponseVOs;
+		
+		return aePartiesResponseVOs;*/
+		return aeUnqPrtsWthSort;
 	}
 
 	/**

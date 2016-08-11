@@ -27,6 +27,8 @@ public class AEVotrTurnouts implements Serializable {
 	@JsonIgnore
 	private String state;
 	private int year;
+	@JsonIgnore
+	private int sa_no;
 	private int male;
 	private int female;
 	private int total;
@@ -48,10 +50,16 @@ public class AEVotrTurnouts implements Serializable {
 		this.state = state;
 	}
 
-	public int getYear() {
-		return year;
+	public int getSa_no() {
+		return sa_no;
 	}
-
+	public void setSa_no(int sa_no) {
+		this.sa_no = sa_no;
+	}
+	
+	public String getYear() {
+		return year + "#" + sa_no;
+	}
 	public void setYear(int year) {
 		this.year = year;
 	}
