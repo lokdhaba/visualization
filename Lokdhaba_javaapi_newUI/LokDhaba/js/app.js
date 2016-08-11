@@ -137,7 +137,7 @@ function traverseSteps() {
 			// current step is the 2nd last step, change text to 'Proceed'
 			if (currentStep+1 == stepsObj.length-1) {
 				$('#get-started-pu .pu-buttons-wrap .button').last().text('Proceed');
-				$('#get-started-pu .pu-buttons-wrap .button').last().attr('href','search.html');
+				$('#get-started-pu .pu-buttons-wrap .button').last().addClass('disabled');
 				return false;
 			}
 		}
@@ -170,7 +170,18 @@ function traverseSteps() {
 	}
 }
 
+//Enables proceed button 
+$("#tos-checkbox").click(showProceedToSearch);
 
+function showProceedToSearch() {
+	if($(this).prop("checked")) {
+		$('#get-started-pu .pu-buttons-wrap .button').last().removeClass('disabled');
+		$('#get-started-pu .pu-buttons-wrap .button').last().attr('href','search.html');
+	} else {
+		$('#get-started-pu .pu-buttons-wrap .button').last().addClass('disabled');
+		$('#get-started-pu .pu-buttons-wrap .button').last().removeAttr('href');
+	}
+}
 
 // shows the get started pop-up
 $('#embed-btn').click(showEmbedPopUp);

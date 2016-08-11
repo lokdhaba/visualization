@@ -6,7 +6,7 @@ var margin = {top: 55, right: 55, bottom: 55, left: 55};
 //initialise the project for map
 var projection = d3.geo.mercator().scale(1);
 var path = d3.geo.path().projection(projection);
-
+var limit_parties_legend = 5;
 //TCPD name in title
 var brand1 = 'Source: Adapted from ECI Data', brand2 = 'Trivedi Centre for Political Data, Ashoka University';
 
@@ -475,12 +475,12 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 	
 	var usercolors = d3.scale.category10();
-
+	var year_sa = year.split("#");
 	var root_path = 'assets/elections/'+elect_type+'/'+state+'/';
 
-	var api_path = api_root_path+'api/ae/elections?state='+state+'&year='+year;
+	var api_path = api_root_path+'api/ae/elections?state='+state+'&year='+year_sa[0]+'&sa_no='+year_sa[1];
 	//console.log(api_path);
-	var api_path2 = api_root_path+'api/ae/elections/partypositions?state='+state+'&year='+year+'&party1='+party;
+	var api_path2 = api_root_path+'api/ae/elections/partypositions?state='+state+'&year='+year_sa[0]+'&sa_no='+year_sa[1]+'&party1='+party;
 	var topoJsonpath = root_path+state+'.json';
 	var filter_column_name ='';
 	
@@ -539,7 +539,7 @@ function showAeMapVizualisation(elect_type, state, year, viz_option, party) {
 					
 		case 'winners':
 			filter_column_name = 'party1';
-			var partiesPath = api_root_path+'api/ae/parties?state='+state+'&year='+year+'&limit=5';
+			var partiesPath = api_root_path+'api/ae/parties?state='+state+'&year='+year_sa[0]+'&sa_no='+year_sa[1]+'&limit='+limit_parties_legend;
 			//console.log(partiesPath);
 			createMapsWinners(600, 300,topoJsonpath,api_path, partiesPath, 6, 'Winners across constituencies',state+' '+year,'ac_no',filter_column_name,usercolors, 'ac');
 				break;
@@ -599,12 +599,12 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party) {
 	var root_path = 'assets/elections/'+elect_type+'/';
 	
 	var topoJsonpath = '',topoMapObj ='';
-	
-	var api_path = api_root_path+'api/ge/elections?year='+year;
+	var years_ga = year.split("#");
+	var api_path = api_root_path+'api/ge/elections?year='+years_ga[0]+'&ga_no='+years_ga[1];
 	var api_path2 = api_path+'&party='+party;
 	
 	//get topojson 	
-	if(year < 1973) {
+	if(years_ga[0] < 1973) {
 		topoJsonpath = root_path+state+'_pre.json';
 		topoMapObj = 'LOKSAB14_I';
 	} else {
@@ -616,7 +616,8 @@ function showGeMapVizualisation(elect_type, state, year, viz_option, party) {
 		
 		case 'winners':
 			column_name = 'Party1';
-			var partiesPath = api_root_path+'api/ge/parties?year='+year+'&limit=5';
+			var partiesPath = api_root_path+'api/ge/parties?year='+years_ga[0]+'&ga_no='+years_ga[1]+'&limit='+limit_parties_legend;
+			//console.log(partiesPath);
 			createMapsWinners(600, 400,topoJsonpath,api_path+'&position=1',partiesPath, 6,  'Regional Distribution of Winners ','General Election '+year,'pc_no',column_name,usercolors, topoMapObj);
 			break;
 		
@@ -717,14 +718,14 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		  };
 		});
 
-		x.domain(data.map(function (d) { return d[labelVar]; }));
+		x.domain(data.map(function (d) { return d[labelVar]; }).sort());
 		y.domain([yscale,
 		  
 		  (d3.max(seriesData, function (c) { 
 			return d3.max(c.values, function (d) { return d.value; });
 		  }))+10
 		]);
-
+		
 
 		var chart_element = svg.append("g")
 							.attr("class","chart_area")
@@ -741,6 +742,18 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				.tickFormat("")
 			)
 
+			// Add the X Axis
+    chart_element.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis)
+        .selectAll("text")	
+            .style("text-anchor", "end")
+            .attr("dx", "-.8em")
+            .attr("dy", ".15em")
+            .attr("transform", function(d) {
+                return "rotate(-65)" 
+                });
 		// Draw the y Grid lines
 		chart_element.append("g")            
 			.attr("class", "grid")
@@ -751,7 +764,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 				.tickSize(-width, 0, 0)
 				.tickFormat("")
 			)
-		chart_element.append("g")
+		/*chart_element.append("g")
 			.attr("class", "x axis")
 			.style("font-size", "12px")
 			.attr("transform", "translate(0," + height + ")")
@@ -762,7 +775,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			.attr("dy", ".71em")
 			.style("text-anchor", "start")
 			.text(col1Head);;
-
+*/
 		chart_element.append("g")
 			.attr("class", "y axis")
 			.style("font-size", "12px")
@@ -957,9 +970,9 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
@@ -984,7 +997,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			html : true,
 			content: function() { 
 			  return col1Head+": " + d.label + 
-					 "<br/>"+col2Head+": " + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
+					 "<br/>"+col2Head+": " + d3.format(",")(d.value !=='' ? d.value: d.y1 - d.y0); }
 		  });
 		  $(this).popover('show')
 		}
@@ -1107,7 +1120,8 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 			})
 		  };
 		});
-		x.domain(data.map(function (d) { return d[labelVar]; }));
+		//console.log(seriesData);
+		x.domain(data.map(function (d) { return d[labelVar]; }).sort());
 		y.domain([yscale,
 		  
 		  (d3.max(seriesData, function (c) { 
@@ -1141,7 +1155,7 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 				.tickSize(-width, 0, 0)
 				.tickFormat("")
 			)
-		chart_element.append("g")
+		/*chart_element.append("g")
 			.attr("class", "x axis")
 			.style("font-size", "12px")
 			.attr("transform", "translate(0," + height + ")")
@@ -1151,7 +1165,19 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 			.attr("x", (width/2)-50)
 			.attr("dy", ".71em")
 			.style("text-anchor", "start")
-			.text(col1Head);;
+			.text(col1Head);;*/
+			
+		chart_element.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis)
+			.selectAll("text")	
+				.style("text-anchor", "end")
+				.attr("dx", "-.8em")
+				.attr("dy", ".15em")
+				.attr("transform", function(d) {
+					return "rotate(-65)" 
+					});
 
 		chart_element.append("g")
 			.attr("class", "y axis")
@@ -1347,9 +1373,9 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");			
@@ -1366,6 +1392,7 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 		}
 		//Show popup
 		function showPopover (d) {
+
 		  $(this).popover({
 			title: d.name,
 			placement: 'auto top',
@@ -1374,7 +1401,7 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 			html : true,
 			content: function() { 
 			  return col1Head+": " + d.label + 
-					 "<br/>"+col2Head+": " + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
+					 "<br/>"+col2Head+": " + d3.format("1f")(d.value!=='' ? d.value: d.y1 - d.y0); }
 		  });
 		  $(this).popover('show')
 		}
@@ -1443,14 +1470,14 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			d.ages = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
 		});
 
-		x0.domain(data.map(function(d) { return d[labelVar]; }));
+		x0.domain(data.map(function(d) { return d[labelVar]; }).sort());
 		x1.domain(ageNames).rangeRoundBands([0, x0.rangeBand()]);
 		y.domain([0, (d3.max(data, function(d) { return d3.max(d.ages, function(d) { return d.value; }); }))+10]);
 
 		var chart_element = svg.append("g")
 							.attr("class","chart_area")
 							//.attr("transform", "translate()");
-		chart_element.append("g")
+		/*chart_element.append("g")
 			.attr("class", "x axis")
 			.style("font-size", "12px")
 			.attr("transform", "translate(0," + height + ")")
@@ -1460,7 +1487,20 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 			.attr("x", (width/2)-50)
 			.attr("dy", ".71em")
 			.style("text-anchor", "start")
-			.text(col1Head);
+			.text(col1Head);*/
+		chart_element.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + height + ")")
+			.call(xAxis)
+			
+			.selectAll("text")	
+				.style("text-anchor", "end")
+				.attr("dx", "-.8em")
+				.attr("dy", ".15em")
+				.attr("transform", function(d) {
+					return "rotate(-65)" 
+					})
+					;
 
 		chart_element.append("g")
 			.attr("class", "y axis")
@@ -1645,9 +1685,9 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");					
@@ -1670,7 +1710,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 				trigger: 'manual',
 				html : true,
 				content: function() { 
-				  return "" + d3.format(",")(d.value ? d.value: d.y1 - d.y0); }
+				  return "" + d3.format(",")(d.value !=='' ? d.value: d.y1 - d.y0); }
 				});
 			$(this).popover('show')
         }
@@ -1878,9 +1918,9 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
@@ -2158,9 +2198,9 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
@@ -2408,9 +2448,9 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");
@@ -2614,9 +2654,9 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 					
 				legend.append("line")
 					.attr("x1", 10)
-					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y1", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.attr("x2", 200)
-					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (21*i) +20) })
+					.attr("y2", function(d, i){ return ( (i*ls_h) + (4*ls_h) + (20*i) +20) })
 					.style("stroke","#DADADA")
 					.style("stroke-width","1px")
 					.style("shape-rendering","crispEdges");

@@ -1,5 +1,6 @@
 	//api path for json data
-	var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
+var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
+//var api_root_path = 'http://localhost:8080/tcpd_ga_new/';
 
 	$(function(){
 		
@@ -110,7 +111,11 @@
 		
 		
 		var params = getUrlVars();
+		
+		
 		if(params['search'] == 1) {
+			params['year'] = decodeURIComponent(params['year']);
+			//return false;
 			$('.results_div').show();
 			var html = getListForVariables(params['viz'], params['type']);
 		
@@ -124,9 +129,9 @@
 				api_path = api_root_path+'api/ge/partieslist?year='+params['year'];
 				$.getJSON(api_root_path+'/api/ge/year', function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						//$('<option />', {value: item, text:item}).appendTo(s1);
-						list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+						list += '<li data-value="'+item+'"><a href="#">'+item.replace("#"," #")+'</a></li>';
 					});	
 					$("#year").html(list);
 					mapDataFromSearchToResult('year', params['year'] );
@@ -137,7 +142,7 @@
 				api_path = api_root_path+'api/ae/partieslist?state='+params['state']+'&year='+params['year'];
 				$.getJSON(api_root_path+'api/ae/states', function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#state").html(list);
@@ -146,8 +151,9 @@
 					//createmaps('','','');
 					$.getJSON(api_root_path+'/api/ae/year?state='+params['state'], function(data) {
 						var list='';
-						$.each(data, function(i, item) {
-							list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+						
+						$.each(data.sort(), function(i, item) {
+							list += '<li data-value="'+item+'"><a href="#">'+item.replace("#"," #")+'</a></li>';
 						});	
 						$("#year").html(list);
 						mapDataFromSearchToResult('year', params['year'] );
@@ -163,7 +169,7 @@
 				$(".parties_td").show();
 				$.getJSON(api_path, function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#parties").html(list);
@@ -180,8 +186,8 @@
 			$.getJSON(api_root_path+'api/ge/year', function(data) {
 			
 			var list='';
-			$.each(data, function(i, item) {
-				list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+			$.each(data.sort(), function(i, item) {
+				list += '<li data-value="'+item+'"><a href="#">'+item.replace("#"," #")+'</a></li>';
 			});	
 				$("#year").html(list);
 				dropdownUpdate('year');
@@ -193,26 +199,25 @@
 
 			$.getJSON(api_root_path+'api/ae/year?state='+$(this).attr('data-value'), function(data) {
 				var list='';
-				$.each(data, function(i, item) {
-					list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+				
+				$.each(data.sort(), function(i, item) {
+					list += '<li data-value="'+item+'"><a href="#">'+item.replace("#"," #")+'</a></li>';
 				});	
 				$("#year").html(list);
 				$("#year").removeClass('js-dropdown-active').prev().html('Select');
+				$("#parties").removeClass('js-dropdown-active').prev().html('Select');
 				//dropdownUpdate($(this).attr('id'));
 				dropdownUpdate('year');
 				years_list = data;	
 			});
 		});
-		
-		
-		
-		
-		
+	
 		$('input[type=radio][name=election-type]').change(function() {
 			$('#filtervalued').empty();
 			$("#state").html('');
 			$("#year").html('');
-
+			$("#year").removeClass('js-dropdown-active').prev().html('Select');
+			$("#parties").removeClass('js-dropdown-active').prev().html('Select');
 			$('.results_div').hide();
 			$(".parties_td").hide();
 			party ='';
@@ -225,9 +230,9 @@
 			if(this.value == 'GE') {
 				$.getJSON(api_root_path+'/api/ge/year', function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						//$('<option />', {value: item, text:item}).appendTo(s1);
-						list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
+						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#year").html(list);
 					$("#year").removeClass('js-dropdown-active').prev().html('Select');
@@ -237,7 +242,7 @@
 			} else {
 				$.getJSON(api_root_path+'api/ae/states', function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						//$('<option />', {value: item, text:item}).appendTo(s1);
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
@@ -267,7 +272,7 @@
 		$("#viz_results").on('click','li',function () {
 			
 			party = '';
-			var year = $("#year li.selected").attr('data-value');
+			var year = ($("#year li.selected").attr('data-value')).split("#");
 			var state = $("#state li.selected").attr('data-value');
 
 			if($(this).hasClass('parties')) {
@@ -277,14 +282,14 @@
 				
 				var elect_type = $("input[name='election-type']:checked").val();
 				if(elect_type == 'AE') {
-					api_path = api_root_path+'api/ae/partieslist?state='+state+'&year='+year;
+					api_path = api_root_path+'api/ae/partieslist?state='+state+'&year='+year[0]+'&sa_no='+year[1];
 				} else {
-					api_path = api_root_path+'api/ge/partieslist?year='+year;
+					api_path = api_root_path+'api/ge/partieslist?year='+year[0]+'&ga_no='+year[1]
 				}
 				//$('#parties').find('option').remove().end().append('<option value="">Select</option>');
 				$.getJSON(api_path, function(data) {
 					var list='';
-					$.each(data, function(i, item) {
+					$.each(data.sort(), function(i, item) {
 						//$('<option />', {value: item, text:item}).appendTo(s1);
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
@@ -298,6 +303,8 @@
 				});
 			} else {
 				//$('#parties').find('option').remove().end().append('<option value="">Select</option>');
+				
+				$("#parties").removeClass('js-dropdown-active').prev().html('Select');
 				$(".parties_td").hide();
 				party = ' ';
 			}
@@ -337,7 +344,7 @@
 			$.getJSON(api_root_path+'api/ge/year', function(data) {
 	
 			var list='';
-			$.each(data, function(i, item) {
+			$.each(data.sort(), function(i, item) {
 				list += '<li data-value="'+item+'"><a href="#">'+item+'</a></li>';
 			});	
 				$("#year").html(list);
@@ -449,7 +456,7 @@
 			} else {
 				state = 'All';
 			}
-			var party = '';
+			//var party = '';
 			party = $("#parties li.selected").attr('data-value');
 			year = $("#year li.selected").attr('data-value');
 			viz_option = $("#viz_results li.selected").attr('data-value');
