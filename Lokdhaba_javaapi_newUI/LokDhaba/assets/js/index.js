@@ -115,6 +115,7 @@ var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 		
 		if(params['search'] == 1) {
 			params['year'] = decodeURIComponent(params['year']);
+			var year_sa = params['year'].split("#");
 			//return false;
 			$('.results_div').show();
 			var html = getListForVariables(params['viz'], params['type']);
@@ -126,7 +127,7 @@ var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 			
 			$("input[name=election-type][value=" + params['type'] + "]").prop('checked', true);
 			if(params['type'] == 'GE') {
-				api_path = api_root_path+'api/ge/partieslist?year='+params['year'];
+				api_path = api_root_path+'api/ge/partieslist?year='+year_sa[0]+'&sa_no='+year_sa[1];
 				$.getJSON(api_root_path+'/api/ge/year', function(data) {
 					var list='';
 					$.each(data.sort(), function(i, item) {
@@ -139,7 +140,7 @@ var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 				});
 				$(".state").hide();
 			} else {
-				api_path = api_root_path+'api/ae/partieslist?state='+params['state']+'&year='+params['year'];
+				api_path = api_root_path+'api/ae/partieslist?state='+params['state']+'&year='+year_sa[0]+'&sa_no='+year_sa[1];
 				$.getJSON(api_root_path+'api/ae/states', function(data) {
 					var list='';
 					$.each(data.sort(), function(i, item) {
