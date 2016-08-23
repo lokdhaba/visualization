@@ -19,7 +19,7 @@ var consDetailsArr = ["AC_Name","AC_Type","Position","Cand1","Sex1","Party1","Vo
 var renamedPopupFields = [{"AC_Name":"AC Name","AC_Type":"AC Type","Position":"Position","Cand1":"Candidate","Sex1":"Sex","Party1":"Party","Votes1":"Votes","NOTA_percent":"NOTA","Turnout":"Turnout","Margin_percent":"Margin","Runner":"Runner","Runner_party":"Runner party","Runner_sex":"Runner sex"}];
 
 var empty_area_color = "#D0D0D0";
-var color_code_legends = [{'M':'#1f77b4','F':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
+var color_code_legends = [{'Male':'#1f77b4','Female':'#8c564b','General':'#1f77b4','SC':'#ff7f0e','ST':'#2ca02c','Hindu':'#fd8d3c', 'Muslim':'#74c476'}];
 
 //get party color codes
 var color_codes = d3.map();
@@ -357,22 +357,22 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 			
 		case 'parties_contesting':
 			filepath = filepath+'ae_parties_contests?state='+state;
-			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'year', 'Year of election', 'parties_contested');	
+			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'year', 'Year of election', 'parties contested');	
 			break;
 			
 		case 'seatshare':
 			filepath = filepath+'ae_seatshares?state='+state;
-			createPartyGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'year', ' Year of election', 'seat_share %',0,'seats');
+			createPartyGridLineGraph(600, 300,filepath,0, 'Seat Share of parties', state+' '+year,'year', ' Year of election', 'seat share %',0,'seats');
 			break;
 			
 		case 'voteshare':
 			filepath = filepath+'ae_voteshares?state='+state;
-			createPartyGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'year', 'Year of election', 'vote_share %',0,'votes');	
+			createPartyGridLineGraph(600, 300,filepath,0, 'Party wise voteshare', state+' '+year,'year', 'Year of election', 'vote share %',0,'votes');	
 			break;
 		
 		case 'contested_deposit_lost':
 			filepath = filepath+'ae_contested_deposit_losts?state='+state;
-			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', state+' '+year, 'year', 'Year of election', 'total_ candidates');	
+			createGroupedBarGraph(600, 300,filepath,0, 'Contested and Deposit Saved', state+' '+year, 'year', 'Year of election', 'total candidates');	
 			break;
 		
 		case 'women':
@@ -617,7 +617,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 			return false;
 		}
 		var labelVar = xAxisHead;
-		var varNames = d3.keys(data[0]).filter(function (key) { return key !== labelVar;});
+		var varNames = d3.keys(data[0]).filter(function (key) { return key !== labelVar;}).sort();;
 		color.domain(varNames);
 
 		var seriesData = varNames.map(function (name) {
@@ -918,6 +918,7 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 			}
 		});
 		
+		varNames = varNames.sort();
 		var seriesData = varNames.map(function (name) {
 		  return {
 			name: name,
@@ -1191,6 +1192,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 		var labelVar = xAxisHead;
 		var ageNames = d3.keys(data[0]).filter(function(key) { return (key !== labelVar && key !== 'id'); });
 
+		ageNames = ageNames.sort();
 		data.forEach(function(d) {
 			d.ages = ageNames.map(function(name) { return {name: name, value: +d[name]}; });
 		});
@@ -1627,6 +1629,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 				count_labels['Others'] += 1;
 			}
 		});
+		legend_labels = legend_labels.sort();
 		legend_labels.push('Others');
 		
 		
@@ -1844,6 +1847,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 			legend_labels = legend_labels.sort().reverse();
 		});
 
+		legend_labels = legend_labels.sort();
 		var color = d3.scale.category10().domain(legend_labels);
 
 	//function ready(error, mdata) {
