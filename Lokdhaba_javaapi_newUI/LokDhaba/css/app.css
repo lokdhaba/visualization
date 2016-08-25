@@ -988,3 +988,19 @@ a {text-decoration:none!important;}
 svg:not(:root) {
     overflow: overlay !important;
 }
+
+
+ul.autocomplete-list li a{
+	 text-overflow: ellipsis;
+}
+
+input.autocomplete-input,
+input.autocomplete-input:focus,
+input.autocomplete-input:active,
+input.autocomplete-input:hover
+{
+	border:none;
+	box-shadow:none;
+	font-size: inherit;
+    color: #666666;
+}

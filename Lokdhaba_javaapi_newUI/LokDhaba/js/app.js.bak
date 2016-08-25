@@ -283,27 +283,4 @@ function dropdownUpdate(txt) {
 	
 }
 
-function dropdownUpdateAutocomplete(txt) {
-	var id;
-	
-	if(txt != 'default-drop li') {
-		id = '#' + txt;
-	} else {
-		id = '.' + txt;
-	}
-	
-	$(id +' li a').attr('href', 'javascript:void(0)').unbind('click').click(function(){		
-	//console.log(id);
-		$(this).parents('.selectpicker').removeClass('js-dropdown-active').prev().find('input').val($(this).text());
-		$(this).parent().siblings().each(function(){
-			
-			$(this).show();
-		});		
-		$(id +' li').removeClass('selected');
-		$(this).parent().addClass('selected');
-		//$(this).parents('.selectpicker').removeclass('js-dropdown-active').html($(this).text());	
-		
-	});
-	
-}
 
