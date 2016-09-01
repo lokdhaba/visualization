@@ -19,7 +19,6 @@ var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 			$('#'+element_id).removeClass('js-dropdown-active').prev().find('input').val(valu);	
 			
 			$('#'+element_id).find('li').each(function(){
-				console.log($(this).val());
 				$(this).show();
 			});
 		
@@ -163,8 +162,8 @@ var api_root_path = 'http://tcpd.ashoka.edu.in:8080/tcpd_api/';
 						list += '<li data-value="'+item+'"><a href="#">'+item.replace("_"," ")+'</a></li>';
 					});	
 					$("#state").html(list);
-					//mapDataFromSearchToAutocompleteResult('state', params['state'] );
-					dropdownUpdateAutocomplete('state');
+					mapDataFromSearchToAutocompleteResult('state', params['state'] );
+					//dropdownUpdateAutocomplete('state');
 
 					//createmaps('','','');
 					$.getJSON(api_root_path+'/api/ae/year?state='+params['state'], function(data) {

@@ -445,7 +445,7 @@ function showAeChartsVizualisation(elect_type, state, year, viz_option, party ) 
 			
 		case 'parties_contesting':
 			filepath = filepath+'ae_parties_contests?state='+state;
-			createGroupedBarGraph(600, 300,filepath,0, 'Name change - Parties represented in vidhan sabha / lok sabha', state+' '+year,'year', 'Year of election', 'parties contested');	
+			createGroupedBarGraph(600, 300,filepath,0, 'Parties represented in vidhan sabha / lok sabha', state+' '+year,'year', 'Year of election', 'parties contested');	
 			break;
 			
 		case 'seatshare':
@@ -990,7 +990,7 @@ function createGridLineGraph(width, height,path,gSeqNo, mheading, sheading, xAxi
 		//Show popup
 		function showPopover (d) {
 		  $(this).popover({
-			title: d.name,
+			title: getCleanedLegendname(d.name),
 			placement: 'auto top',
 			container: 'body',
 			trigger: 'manual',
@@ -1395,7 +1395,7 @@ function createPartyGridLineGraph(width, height,path,gSeqNo, mheading, sheading,
 		function showPopover (d) {
 
 		  $(this).popover({
-			title: d.name,
+			title: getCleanedLegendname(d.name),
 			placement: 'auto top',
 			container: 'body',
 			trigger: 'manual',
@@ -1706,7 +1706,7 @@ function createGroupedBarGraph(width, height,path,gSeqNo, mheading, sheading, xA
 		//Show popup
         function showPopover (d) {
 			$(this).popover({
-				title: d.name,
+				title: getCleanedLegendname(d.name),
 				placement: 'auto top',
 				container: 'body',
 				trigger: 'manual',
@@ -1962,7 +1962,7 @@ function createMapsRanges(width, height,topoJsonpath, csvPath, gSeqNo, mheading,
 				//Show popup
 				function showPopover (d) {
 				  $(this).popover({
-					title: d.name,
+					title: getCleanedLegendname(d.name),
 					placement: 'auto top',
 					container: 'body',
 					trigger: 'manual',
@@ -2225,7 +2225,7 @@ function createMapsWinners(width, height,topoJsonpath, csvPath, partiesPath, gSe
 			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
-				title: d.name,
+				title: getCleanedLegendname(d.name),
 				placement: 'auto top',
 				container: 'body',
 				trigger: 'manual',
@@ -2473,7 +2473,7 @@ function createMapsCategory(width, height,topoJsonpath, csvPath, gSeqNo, mheadin
 			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
-				title: d.name,
+				title: getCleanedLegendname(d.name),
 				placement: 'auto top',
 				container: 'body',
 				trigger: 'manual',
@@ -2690,7 +2690,7 @@ function createMapsPositions(width, height,topoJsonpath, csvPath, gSeqNo, mheadi
 			//Show popup
 			function showPopover (d) {
 			  $(this).popover({
-				title: d.name,
+				title: getCleanedLegendname(d.name),
 				placement: 'auto top',
 				container: 'body',
 				trigger: 'manual',
