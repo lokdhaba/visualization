@@ -899,7 +899,7 @@ div.tooltip {
 }
 
 .edit-title{
-	position:relative;
+	position:absolute;
 }
 
 pre code { 

@@ -255,12 +255,13 @@ function toggleHeadingEditNew() {
 		G2[0].setAttribute("transform", "translate("+ ((BB1.x+BB1.width)-BB2.x) + 0 +")")
 		
 		
-		var svg = d3.select('svg');
-		var frm = svg.append("foreignObject")
-					.attr('class','edit-title');
+		var frm = d3.select('.edit-title');
+		/*var frm = svg.append("foreignObject")
+					.attr('class','edit-title');*/
 					
         var inp = frm
-            .attr("x", BB3.x)
+			.append("xhtml:p")
+			.attr("x", BB2.x)
 			.attr("y", BB1.y)
             .style("width", BB3.width)
             .style("height", BB1.height)
@@ -290,6 +291,7 @@ function toggleHeadingEditNew() {
 		$(".input-stitle").val(stitle.text());
 		title.style('display','none');
 		stitle.style('display','none');
+		d3.select('.edit-title').style('display','block');
 		$(this).addClass('save');
 	} else {
 
@@ -297,7 +299,7 @@ function toggleHeadingEditNew() {
 		stitle.text($(".input-stitle").val());
 		title.style('display','');
 		stitle.style('display','');
-		d3.select('.edit-title').remove();
+		$('.edit-title').html('');
 		$(this).removeClass('save');
 	}
 	alignTitle();
@@ -337,7 +339,7 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 	  .style("color","#333333")
 	  .text(brand1);	  
 		  
-	title.append("foreignObject")
+/*	title.append("foreignObject")
 		.attr("x", width)
 		.attr("y", 40)
 		.attr("width", 30)
@@ -346,7 +348,7 @@ function createMapTitle(svg, width, height, margin, mheading, sheading) {
 		.attr("src","./assets/edit.svg")
 		.attr("width", 30)
 		.attr("height", 30)
-
+*/
 	  
 	  title.append("text")
 	  .attr("class", "b2title")
